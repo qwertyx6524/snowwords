@@ -1807,6 +1807,154 @@ app.delete('/admin/api/feedback/:id', ensureAdmin, async (req, res) => {
   }
 });
 
+// Admin API: subscription plans
+app.get('/admin/api/subscription-plans', ensureAdmin, async (req, res) => {
+  try {
+    const r = await db.query(`
+      SELECT
+        id,
+        name,
+        description,
+        COALESCE(price, 0)::float AS price,
+        COALESCE(billing_interval, billingInterval, 'month') AS "billingInterval"
+      FROM subscription_plans
+      ORDER BY price ASC, id ASC
+    `);
+    res.json(r.rows);
+  } catch (e) {
+    console.error('plans error', e);
+    res.status(500).json({ error: 'Failed to load plans' });
+  }
+});
+
+// Admin API: subscriptions (joined)
+app.get('/admin/api/subscriptions', ensureAdmin, async (req, res) => {
+  try {
+    const r = await db.query(`
+      SELECT
+        s.id,
+        s.userId,
+        u.username,
+        u.email,
+        s.planId,
+        p.name AS "planName",
+        COALESCE(p.price, s.price, 0)::float AS price,
+        COALESCE(p.billing_interval, p."billingInterval", s.billing_interval, s."billingInterval", 'month') AS "billingInterval",
+        COALESCE(s.status, 'unknown') AS status,
+        s.startDate,
+        COALESCE(s.currentPeriodEnd, s.endDate) AS "currentPeriodEnd",
+        COALESCE(s.cancelAtPeriodEnd, s."cancelAtPeriodEnd", false) AS "cancelAtPeriodEnd",
+        COALESCE(s.stripeCustomerId, s."customerId") AS "stripeCustomerId",
+        COALESCE(s.stripeSubscriptionId, s."subscriptionId") AS "stripeSubscriptionId"
+      FROM subscriptions s
+      LEFT JOIN users u ON u.id = s.userId
+      LEFT JOIN subscription_plans p ON p.id = s.planId
+      ORDER BY s.startDate DESC NULLS LAST, s.id DESC
+      LIMIT 500
+    `);
+    res.json(r.rows);
+  } catch (e) {
+    console.error('subscriptions error', e);
+    res.status(500).json({ error: 'Failed to load subscriptions' });
+  }
+});
+
+// Admin API: subscription details
+app.get('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
+  try {
+    const r = await db.query(`
+      SELECT
+        s.*,
+        u.username,
+        u.email,
+        p.name AS "planName",
+        COALESCE(p.price, s.price, 0)::float AS price,
+        COALESCE(p.billing_interval, p."billingInterval", s.billing_interval, s."billingInterval", 'month') AS "billingInterval",
+        COALESCE(s.currentPeriodEnd, s.endDate) AS "currentPeriodEnd",
+        COALESCE(s.stripeCustomerId, s."customerId") AS "stripeCustomerId",
+        COALESCE(s.stripeSubscriptionId, s."subscriptionId") AS "stripeSubscriptionId"
+      FROM subscriptions s
+      LEFT JOIN users u ON u.id = s.userId
+      LEFT JOIN subscription_plans p ON p.id = s.planId
+      WHERE s.id = $1
+    `, [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(r.rows[0]);
+  } catch (e) {
+    console.error('subscription detail error', e);
+    res.status(500).json({ error: 'Failed to load subscription' });
+  }
+});
+
+// Admin API: update subscription status / cancel flag
+app.put('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { status, cancelAtPeriodEnd } = req.body;
+    await db.query(`
+      UPDATE subscriptions
+      SET status = COALESCE($1, status),
+          "cancelAtPeriodEnd" = COALESCE($2, "cancelAtPeriodEnd")
+      WHERE id = $3
+    `, [status || null, (typeof cancelAtPeriodEnd === 'boolean') ? cancelAtPeriodEnd : null, req.params.id]);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('subscription update error', e);
+    res.status(500).json({ error: 'Failed to update subscription' });
+  }
+});
+
+// Admin API: subscription stats
+app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
+  try {
+    // Active subs + MRR
+    const activeRes = await db.query(`
+      SELECT
+        COUNT(*)::int AS active,
+        COALESCE(SUM(COALESCE(p.price, s.price, 0)), 0)::float AS mrr
+      FROM subscriptions s
+      LEFT JOIN subscription_plans p ON p.id = s.planId
+      WHERE COALESCE(s.status, 'unknown') IN ('active','trialing','past_due')
+        AND (COALESCE(s.cancelAtPeriodEnd, false) = false OR COALESCE(s.currentPeriodEnd, s.endDate) > NOW())
+    `);
+
+    // 30-day churn: canceled in last 30d divided by active 30d ago
+    const churnNumRes = await db.query(`
+      SELECT COUNT(*)::int AS c
+      FROM subscriptions
+      WHERE COALESCE(status,'unknown') IN ('canceled','unpaid','paused')
+        AND (updatedAt IS NOT NULL AND updatedAt >= NOW() - INTERVAL '30 days'
+             OR endDate IS NOT NULL AND endDate >= NOW() - INTERVAL '30 days')
+    `);
+    const cohortRes = await db.query(`
+      SELECT COUNT(*)::int AS c
+      FROM subscriptions
+      WHERE startDate <= NOW() - INTERVAL '30 days'
+        AND COALESCE(status,'unknown') IN ('active','trialing','past_due')
+    `);
+    const churn30 = cohortRes.rows[0].c ? Math.round((churnNumRes.rows[0].c / cohortRes.rows[0].c) * 100) : 0;
+
+    // by plan counts
+    const byPlanRes = await db.query(`
+      SELECT s.planId, COUNT(*)::int AS count
+      FROM subscriptions s
+      WHERE COALESCE(s.status,'unknown') IN ('active','trialing','past_due')
+      GROUP BY s.planId
+    `);
+    const byPlan = {};
+    byPlanRes.rows.forEach(r => { byPlan[r.planid || r.planId] = { count: r.count }; });
+
+    res.json({
+      active: activeRes.rows[0].active || 0,
+      mrr: activeRes.rows[0].mrr || 0,
+      churn30,
+      byPlan
+    });
+  } catch (e) {
+    console.error('subscription stats error', e);
+    res.status(500).json({ error: 'Failed to load subscription stats' });
+  }
+});
+
 // Activities Route
 app.get('/activities', (req, res) => {
   // Only render the activities page if user is authenticated
