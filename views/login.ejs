@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log In - Snowwords</title>
+    <style>
+      /* Global: force full viewport height & disable scrolling */
+      html, body {
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      :root {
+        --icy-turquoise: #7ec8d8;
+        --frost-blue: #4682b4;
+        --snow-white: #f8f9fa;
+        --polar-night: #2b3a4a;
+      }
+      
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        color: var(--polar-night);
+        background: var(--snow-white);
+        line-height: 1.6;
+      }
+      
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      /* Divide the page into two vertical sections */
+      .top-section {
+        flex: 0 0 auto;
+      }
+      
+      .section-sky {
+        flex: 1 1 auto;
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        /* Use flex layout to center the content vertically and horizontally */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .section-sky h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      /* Login Card styling remains the same */
+      .login-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+        max-width: 500px;
+        margin: 2rem auto;
+        position: relative;
+      }
+      
+      .login-card::before {
+        content: '❄️';
+        position: absolute;
+        top: -20px;
+        right: -10px;
+        font-size: 2rem;
+        opacity: 0.2;
+      }
+      
+      .login-card h2 {
+        color: var(--frost-blue);
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      
+      form label {
+        display: block;
+        margin: 1rem 0 0.5rem;
+        color: var(--polar-night);
+        font-weight: 500;
+      }
+      
+      form input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid var(--icy-turquoise);
+        border-radius: 8px;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+      
+      form input:focus {
+        outline: none;
+        border-color: var(--frost-blue);
+        box-shadow: 0 0 8px rgba(126, 200, 216, 0.3);
+      }
+      
+      .btn {
+        background: var(--icy-turquoise);
+        color: white;
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+      }
+      
+      .btn:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+      
+      .badge-warm {
+        background: #ffcccc;
+        color: #cc0000;
+        padding: 1rem;
+        border-radius: 8px;
+        width: 100%;
+        text-align: center;
+        margin: 1rem 0;
+      }
+      
+      .text-center {
+        text-align: center;
+        margin: 2rem 0;
+      }
+      
+      .text-center a {
+        color: var(--frost-blue);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      .text-center a:hover {
+        text-decoration: underline;
+      }
+      
+      .btn-google {
+        background: white;
+        color: #4285f4;
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-sizing: border-box;
+      }
+      
+      .btn-google:hover {
+        background: #f8f9fa;
+        border-color: #4285f4;
+        transform: translateY(-2px);
+      }
+      
+      .google-icon {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: var(--polar-night);
+      }
+      
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        border-top: 2px solid var(--icy-turquoise);
+        margin: 0 0.5rem;
+      }
+      
+      /* For phones, use your original adjustments */
+      @media (max-width: 480px) {
+        html, body {
+          height: 100vh;
+          overflow: hidden;
+        }
+        .container {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 1rem;
+          height: 100vh;
+        }
+        .login-card {
+          margin: 0 auto;
+          padding: 1rem;
+        }
+        .section-sky {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Section: Form and Links -->
+    <div class="top-section">
+      <div class="container">
+        <div class="login-card">
+          <h2>Log In to Your Snowwords</h2>
+          
+          <% if (error) { %>
+            <div class="badge-warm">
+              <%= error %>
+            </div>
+          <% } %>
+  
+          <form action="/login" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+  
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+  
+            <button class="btn" type="submit">Melt Into Learning</button>
+  
+            <div class="divider">or</div>
+  
+            <a href="/auth/google" class="btn-google">
+              <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"/>
+              </svg>
+              Log In with Google
+            </a>
+          </form>
+        </div>
+        <div class="text-center">
+          <p>Don't have an account? <a href="/signup">Start your journey here</a></p>
+          <p><a href="/">Back to Home</a></p>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Hero Section -->
+    <section class="section-sky">
+      <div class="container">
+        <h1>Welcome Back to Snowwords ❄️</h1>
+      </div>
+    </section>
+  </body>
+</html>

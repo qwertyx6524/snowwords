@@ -1,0 +1,1470 @@
+<!-- views/admin.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowWords Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+    
+        .sidebar {
+            background: linear-gradient(180deg, #031b4e 0%, #0a2a6c 100%);
+            min-height: calc(100vh - 56px);
+            color: #ffffff;
+            padding: 20px;
+        }
+        
+        .sidebar a.nav-link {
+            color: #ffffff;
+            opacity: 0.85;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar a.nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #4dc0b5;
+        }
+        
+        .sidebar .badge {
+            background-color: #e74c3c;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+        }
+        
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #f0f0f0;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        
+        .stat-card .icon {
+            background: #eef5ff;
+            color: #2c7be5;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .table thead th {
+            background-color: #f8fafc;
+        }
+        
+        .progress-sm {
+            height: 8px;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .badge-soft {
+            background-color: #eef2ff;
+            color: #4c51bf;
+            font-weight: 600;
+        }
+        
+        .filter-chip {
+            background-color: #edf2f7;
+            color: #4a5568;
+            border-radius: 9999px;
+            padding: 6px 10px;
+            margin-right: 8px;
+            font-size: 13px;
+        }
+
+        .search-input {
+            border-radius: 9999px;
+            padding: 10px 14px;
+        }
+
+        .list-group-item {
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 320px;
+        }
+
+        .alert-container {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(180deg, #031b4e 0%, #0a2a6c 100%);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-snow me-2"></i> SnowWords Admin
+            </a>
+            <div class="d-flex">
+                <a href="/admin/logout" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 d-none d-md-block sidebar">
+                <div class="text-center mb-4">
+                    <h3>SnowWords</h3>
+                    <p>Admin Panel</p>
+                </div>
+                <div class="nav flex-column nav-pills">
+                    <a class="nav-link active" href="#dashboard" data-bs-toggle="pill">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="#users" data-bs-toggle="pill">
+                        <i class="bi bi-people"></i> User Management
+                    </a>
+                    <a class="nav-link" href="#progress" data-bs-toggle="pill">
+                        <i class="bi bi-graph-up"></i> Progress Analytics
+                    </a>
+                    <a class="nav-link" href="#vocabulary" data-bs-toggle="pill">
+                        <i class="bi bi-book"></i> Vocabulary Database
+                    </a>
+                    <a class="nav-link" href="#feedback" data-bs-toggle="pill">
+                        <i class="bi bi-chat-quote"></i> User Feedback
+                        <span class="badge bg-danger ms-2" id="newFeedbackBadge" style="display: none;">0</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main -->
+            <div class="col-md-10 main-content">
+                <div class="tab-content">
+                    <!-- Dashboard Tab -->
+                    <div class="tab-pane fade show active" id="dashboard">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="icon"><i class="bi bi-people"></i></div>
+                                        <div>
+                                            <div class="stat-value" id="totalUsers">0</div>
+                                            <div class="stat-label">Total Users</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="icon"><i class="bi bi-journal-bookmark"></i></div>
+                                        <div>
+                                            <div class="stat-value" id="totalVocab">0</div>
+                                            <div class="stat-label">Total Vocabulary</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="icon"><i class="bi bi-chat-dots"></i></div>
+                                        <div>
+                                            <div class="stat-value" id="totalMessages">0</div>
+                                            <div class="stat-label">Total Messages</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="icon"><i class="bi bi-percent"></i></div>
+                                        <div>
+                                            <div class="stat-value" id="avgProgress">0%</div>
+                                            <div class="stat-label">Average Progress</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-lg-8">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-activity me-2"></i>User Activity</h5>
+                                        <small class="text-muted">Messages & Words by weekday</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="userActivityChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="bi bi-book-half me-2"></i>Vocabulary Mastery</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container" style="height: 260px;">
+                                            <canvas id="vocabMasteryChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mt-3">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Engagement by Level</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container" style="height: 220px;">
+                                            <canvas id="engagementChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
+                                <small class="text-muted">Latest messages and vocabulary adds</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Activity</th>
+                                                <th>Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="activityTable">
+                                            <tr><td colspan="3" class="text-center text-muted py-3">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header d-flex align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Feedback Snapshot</h5>
+                                <span class="ms-2 text-muted">Total: <span id="totalFeedback">0</span><span id="newFeedbackCount"></span></span>
+                            </div>
+                            <div class="card-body">
+                                <div id="feedbackSnapshot" class="text-muted">Open the Feedback tab for details.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div class="tab-pane fade" id="users">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-people me-2"></i>User Management</h5>
+                                <input id="userSearch" class="form-control form-control-sm" style="max-width:300px" placeholder="Search by name, email…">
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>User</th>
+                                                <th>English Level</th>
+                                                <th>Vocab Count</th>
+                                                <th>Progress</th>
+                                                <th>Messages</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="userTable">
+                                            <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="userDetails" class="card mt-3" style="display:none;">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-person me-2"></i>User Profile</h6>
+                                <button id="closeUserDetails" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x"></i></button>
+                            </div>
+                            <div class="card-body">
+                                <div id="userProfileContent">Loading…</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Tab -->
+                    <div class="tab-pane fade" id="progress">
+                        <div class="row g-3">
+                            <div class="col-lg-3">
+                                <div class="card">
+                                    <div class="card-header"><strong>Filters</strong></div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Level</label>
+                                            <div>
+                                                <span class="filter-chip" data-level="all">All</span>
+                                                <span class="filter-chip" data-level="Beginner">Beginner</span>
+                                                <span class="filter-chip" data-level="Intermediate">Intermediate</span>
+                                                <span class="filter-chip" data-level="Advanced">Advanced</span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Search</label>
+                                            <input id="progressSearch" class="form-control form-control-sm" placeholder="Name or email…">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Progress Overview</h5>
+                                        <small class="text-muted">Mastery, hours, accuracy, streak</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table align-middle" id="progressTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>User</th>
+                                                        <th>Level</th>
+                                                        <th>Learned</th>
+                                                        <th>Hours</th>
+                                                        <th>Accuracy</th>
+                                                        <th>Streak</th>
+                                                        <th>Progress</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="chart-container mt-3">
+                                            <canvas id="userEngagementChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vocabulary Tab -->
+                    <div class="tab-pane fade" id="vocabulary">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Vocabulary Database</h5>
+                                <div class="d-flex align-items-center">
+                                    <input id="vocabSearch" class="form-control form-control-sm me-2" style="max-width:240px" placeholder="Search word…">
+                                    <button id="addVocabBtn" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Word</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>User</th>
+                                                <th>Word</th>
+                                                <th>Definition</th>
+                                                <th>Correct</th>
+                                                <th>Difficulty</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="vocabTable">
+                                            <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <div class="text-muted" id="vocabPageInfo">Page 1</div>
+                                    <div>
+                                        <button id="vocabPrev" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i></button>
+                                        <button id="vocabNext" class="btn btn-outline-secondary btn-sm ms-1"><i class="bi bi-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add / Edit Modal -->
+                        <div class="modal fade" id="vocabModal" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="vocabModalTitle">Add Vocabulary</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form id="vocabForm">
+                                    <input type="hidden" id="vocabId">
+                                    <div class="mb-3">
+                                        <label class="form-label">User</label>
+                                        <select id="vocabUser" class="form-select"></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Word</label>
+                                        <input id="vocabWord" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Definition</label>
+                                        <textarea id="vocabDefinition" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Difficulty</label>
+                                        <select id="vocabDifficulty" class="form-select">
+                                            <option value="1">1 (Easy)</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5 (Hard)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Correct Count</label>
+                                        <input id="vocabCorrect" type="number" min="0" class="form-control" value="0">
+                                    </div>
+                                </form>
+                              </div>
+                              <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button id="saveVocabBtn" class="btn btn-primary">Save</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Tab -->
+                    <div class="tab-pane fade" id="feedback">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-chat-quote me-2"></i>User Feedback</h5>
+                                <div class="dropdown">
+                                  <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                    Status Filter
+                                  </button>
+                                  <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" data-filter="all">All</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="new">New</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="in-progress">In Progress</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="resolved">Resolved</a></li>
+                                  </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <input id="feedbackSearch" class="form-control form-control-sm" style="max-width:300px" placeholder="Search by subject or name…">
+                                    <small class="text-muted">Click a row to view details</small>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Subject</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="feedbackTable">
+                                            <tr><td colspan="5" class="text-center text-muted py-3">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="feedbackDetailsCard" class="card mt-3" style="display:none;">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Feedback Details</h6>
+                                <button id="closeFeedbackDetails" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x"></i></button>
+                            </div>
+                            <div class="card-body">
+                                <h5 id="feedbackDetailSubject" class="mb-2">Loading…</h5>
+                                <div class="mb-2">
+                                    <strong>From:</strong> <span id="feedbackDetailName">—</span> ·
+                                    <a id="feedbackDetailEmail" href="#">—</a>
+                                </div>
+                                <div class="mb-2 text-muted"><small id="feedbackDetailDate">—</small></div>
+                                <p id="feedbackDetailMessage" class="border rounded p-2 bg-light">—</p>
+
+                                <div id="feedbackDetailUser" class="mt-3"></div>
+
+                                <div class="mt-3 d-flex align-items-center">
+                                    <label class="me-2">Status:</label>
+                                    <select id="feedbackDetailStatus" class="form-select form-select-sm" style="max-width:180px">
+                                        <option value="new">New</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                    </select>
+                                    <button id="updateFeedbackStatus" class="btn btn-primary btn-sm ms-2" data-feedback-id="">
+                                        <i class="bi bi-check2-circle me-1"></i>Update
+                                    </button>
+                                    <button id="deleteFeedbackBtn" class="btn btn-outline-danger btn-sm ms-2" data-feedback-id="">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- /Feedback tab -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert-container" id="alertContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ---------- Loading HUD ----------
+        function showLoadingMessage() {
+            const mainContent = document.querySelector('.main-content') || document.body;
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.className = 'alert alert-info';
+            loadingDiv.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Loading dashboard data...';
+            loadingDiv.style.position = 'fixed';
+            loadingDiv.style.top = '20px';
+            loadingDiv.style.left = '50%';
+            loadingDiv.style.transform = 'translateX(-50%)';
+            loadingDiv.style.zIndex = '1000';
+            mainContent.appendChild(loadingDiv);
+        }
+        function removeLoadingMessage() {
+            document.getElementById('loadingMessage')?.remove();
+        }
+
+        // ---------- Dashboard ----------
+        function loadDashboard() {
+            console.log('Loading dashboard data...');
+            
+            // Fetch stats data
+            fetch('/admin/api/stats')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Stats API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(stats => {
+                    console.log('Stats data received:', stats);
+                    updateDashboardStats(stats);
+                    initializeCharts(stats);
+                    
+                    // After stats are loaded, fetch activity data
+                    return fetch('/admin/api/activity');
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Activity API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(activities => {
+                    console.log('Activity data received:', activities);
+                    populateActivityTable(activities);
+                    removeLoadingMessage();
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard:', error);
+                    showAlert('error', 'Failed to load dashboard data: ' + error.message);
+                    removeLoadingMessage();
+                });
+        }
+
+        function updateDashboardStats(stats) {
+            // Update the stats cards with actual data
+            document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString() || '0';
+            document.getElementById('totalVocab').textContent = stats.totalVocab.toLocaleString() || '0';
+            document.getElementById('totalMessages').textContent = stats.totalMessages.toLocaleString() || '0';
+            document.getElementById('avgProgress').textContent = (stats.avgProgress || '0') + '%';
+            
+            // Update feedback stats
+            if (document.getElementById('totalFeedback')) {
+                document.getElementById('totalFeedback').textContent = stats.totalFeedback?.toLocaleString() || '0';
+                
+                // Show new feedback count if any
+                const newFeedbackCount = document.getElementById('newFeedbackCount');
+                if (newFeedbackCount && stats.newFeedback > 0) {
+                    newFeedbackCount.textContent = ` (+${stats.newFeedback} new)`;
+                    
+                    // Also update the badge on the sidebar
+                    const badge = document.getElementById('newFeedbackBadge');
+                    if (badge) {
+                        badge.textContent = stats.newFeedback;
+                        badge.style.display = 'inline-block';
+                    }
+                } else if (newFeedbackCount) {
+                    newFeedbackCount.textContent = '';
+                    
+                    // Hide the badge if no new feedback
+                    const badge = document.getElementById('newFeedbackBadge');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function setupTabListeners() {
+            // Add event listeners for tab switching
+            document.querySelectorAll('a[data-bs-toggle="pill"]').forEach(tabElement => {
+                tabElement.addEventListener('shown.bs.tab', function (e) {
+                    const target = e.target.getAttribute('href');
+                    
+                    if (target === '#users') {
+                        loadUsers();
+                    } else if (target === '#progress') {
+                        loadProgressData();
+                    } else if (target === '#vocabulary') {
+                        loadVocabularyData(1);
+                    } else if (target === '#feedback') {
+                        loadFeedback();
+                    }
+                });
+            });
+        }
+
+        function initializeCharts(stats) {
+            try {
+                // User Activity Chart (Messages / Vocab by weekday)
+                const activityCtx = document.getElementById('userActivityChart');
+                if (activityCtx) {
+                    activityCtx.chart && activityCtx.chart.destroy();
+                    activityCtx.chart = new Chart(activityCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                            datasets: [
+                                { label: 'Messages', data: stats.messagesByDay || [0,0,0,0,0,0,0], backgroundColor: '#3498db' },
+                                { label: 'Vocabulary Added', data: stats.vocabByDay || [0,0,0,0,0,0,0], backgroundColor: '#2ecc71' }
+                            ]
+                        },
+                        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                    });
+                }
+
+                // Vocab Mastery Chart
+                const masteryCtx = document.getElementById('vocabMasteryChart');
+                if (masteryCtx) {
+                    masteryCtx.chart && masteryCtx.chart.destroy();
+                    masteryCtx.chart = new Chart(masteryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Mastered (5/5)','Good Progress (3-4/5)','Learning (1-2/5)','Just Started (0/5)'],
+                            datasets: [{ data: stats.vocabMastery || [0,0,0,0], backgroundColor: ['#2ecc71','#3498db','#f39c12','#e74c3c'] }]
+                        },
+                        options: { responsive: true, plugins: { legend: { position: 'right' } } }
+                    });
+                }
+
+                // Engagement by Level Chart
+                createUserEngagementChart(stats);
+            } catch (err) {
+                console.error('Chart initialization error:', err);
+                showAlert('error', 'Failed to initialize charts: ' + err.message);
+            }
+        }
+
+        function populateActivityTable(activities) {
+            const tbody = document.getElementById('activityTable');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!Array.isArray(activities) || activities.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No recent activity.</td></tr>`;
+                return;
+            }
+            activities.slice(0, 20).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.username || 'Unknown'}</td>
+                    <td>${item.activity}</td>
+                    <td class="text-muted"><small>${item.timeFormatted || ''}</small></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function createUserEngagementChart(stats) {
+            const ctx = document.getElementById('userEngagementChart');
+            if (!ctx) {
+                console.error('User engagement chart canvas not found');
+                return;
+            }
+            
+            // Clear existing chart if any
+            if (ctx.chart) {
+                ctx.chart.destroy();
+            }
+            
+            // Use server-provided data or build from progress endpoint later
+            const data = stats.engagementByLevel || [0, 0, 0];
+            
+            ctx.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Beginner','Intermediate','Advanced'],
+                    datasets: [{
+                        label: 'User Engagement',
+                        data,
+                        backgroundColor: ['rgba(52,152,219,0.6)','rgba(46,204,113,0.6)','rgba(243,156,18,0.6)'],
+                        borderColor: ['rgb(52,152,219)','rgb(46,204,113)','rgb(243,156,18)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        // ---------- Users ----------
+        function loadUsers() {
+            console.log('Loading users...');
+            fetch('/admin/api/users')
+                .then(r => {
+                    if (!r.ok) throw new Error(`Users API returned ${r.status}`);
+                    return r.json();
+                })
+                .then(users => populateUsers(users))
+                .catch(err => {
+                    console.error(err);
+                    showAlert('error', 'Failed to load users');
+                });
+        }
+
+        function populateUsers(users) {
+            const tbody = document.getElementById('userTable');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!Array.isArray(users) || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No users found</td></tr>`;
+                return;
+            }
+            users.forEach(u => {
+                const progressPct = Math.min(Math.max(parseInt(u.progress || 0), 0), 100);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-person" style="font-size: 20px;"></i>
+                            </div>
+                            <div>
+                                <div>${u.username || '(no name)'}</div>
+                                <small class="text-muted">${u.email || ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${u.englishLevel || 'Beginner'}</td>
+                    <td>${u.vocabCount || 0}</td>
+                    <td>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar" role="progressbar" style="width:${progressPct}%"></div>
+                        </div>
+                        <small class="text-muted">${progressPct}%</small>
+                    </td>
+                    <td>${u.messageCount || 0}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewUser(${u.id})"><i class="bi bi-eye"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function viewUser(id) {
+            const panel = document.getElementById('userDetails');
+            const content = document.getElementById('userProfileContent');
+            panel.style.display = 'block';
+            content.innerHTML = 'Loading…';
+            fetch(`/admin/api/users/${id}`)
+              .then(r => {
+                if (!r.ok) throw new Error(`User ${id} not found`);
+                return r.json();
+              })
+              .then(u => {
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-person" style="font-size: 24px;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">${u.username || '(no name)'}</div>
+                                        <div class="text-muted">${u.email || ''}</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div><strong>Level:</strong> ${u.englishLevel || '—'}</div>
+                                <div><strong>Goals:</strong> ${u.learningGoals || '—'}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="border rounded p-3">
+                                <h6 class="mb-2">Stats</h6>
+                                <div class="row">
+                                    <div class="col-6">Vocabulary: <strong>${u.vocabCount || 0}</strong></div>
+                                    <div class="col-6">Messages: <strong>${u.messageCount || 0}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+              })
+              .catch(err => {
+                content.innerHTML = `<div class="text-danger">${err.message}</div>`;
+              });
+        }
+
+        document.getElementById('closeUserDetails')?.addEventListener('click', () => {
+            document.getElementById('userDetails').style.display = 'none';
+        });
+
+        // ---------- Progress ----------
+        function loadProgressData() {
+            console.log('Loading progress data...');
+            showAlert('info', 'Loading progress data...', 2000);
+            
+            fetch('/admin/api/progress')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Progress API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(progress => {
+                    console.log('Progress data received:', progress);
+                    populateProgressTable(progress);
+                    initializeProgressCharts(progress);
+                })
+                .catch(error => {
+                    console.error('Error loading progress data:', error);
+                    showAlert('error', 'Failed to load progress data: ' + error.message);
+                });
+        }
+
+        function populateProgressTable(progress) {
+            const progressTableBody = document.querySelector('#progressTable tbody');
+            if (!progressTableBody) {
+                console.error('Progress table body not found');
+                return;
+            }
+            
+            progressTableBody.innerHTML = '';
+            
+            if (!progress || progress.length === 0) {
+                progressTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4">No progress data available</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            progress.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.dataset.level = item.level || 'Beginner'; // For filtering
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                style="width: 40px; height: 40px;">
+                                <i class="bi bi-person" style="font-size: 20px;"></i>
+                            </div>
+                            <div>${item.username || `User ${item.id}`}</div>
+                        </div>
+                    </td>
+                    <td>${item.level || 'Beginner'}</td>
+                    <td>${item.learned || 0}</td>
+                    <td>${item.hours || 0}</td>
+                    <td>${item.accuracy || 0}%</td>
+                    <td>${item.streak || 0} days</td>
+                    <td>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar bg-${item.progress >= 70 ? 'success' : item.progress >= 40 ? 'primary' : 'warning'}" 
+                                role="progressbar" style="width: ${item.progress || 0}%"></div>
+                        </div>
+                        <small class="text-muted">${item.progress || 0}%</small>
+                    </td>
+                `;
+                
+                progressTableBody.appendChild(row);
+            });
+        }
+
+        function initializeProgressCharts(progress) {
+            // Build engagement (percentage of users hitting progress bands) if you want to override server stat
+            const levels = { Beginner: 0, Intermediate: 0, Advanced: 0 };
+            progress.forEach(p => { levels[p.level || 'Beginner'] = (levels[p.level || 'Beginner'] || 0) + 1; });
+            const total = progress.length || 1;
+            const engagementByLevel = [
+                Math.round((levels.Beginner || 0) / total * 100),
+                Math.round((levels.Intermediate || 0) / total * 100),
+                Math.round((levels.Advanced || 0) / total * 100),
+            ];
+            createUserEngagementChart({ engagementByLevel });
+        }
+
+        // ---------- Vocabulary ----------
+        let vocabPage = 1, vocabTotalPages = 1;
+
+        function loadVocabularyData(page = 1) {
+            console.log('Loading vocabulary data (page ' + page + ')...');
+            showAlert('info', 'Loading vocabulary...', 2000);
+            
+            fetch(`/admin/api/vocabulary?page=${page}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Vocabulary API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Vocabulary data received:', data);
+                    populateVocabularyTable(data.vocabulary);
+                    updateVocabPagination(data.pagination);
+                    
+                    // Fill user dropdown for modal
+                    const userSelect = document.getElementById('vocabUser');
+                    if (userSelect) {
+                        userSelect.innerHTML = '';
+                        if (Array.isArray(data.users)) {
+                            data.users.forEach(user => {
+                                const option = document.createElement('option');
+                                option.value = user.id;
+                                option.textContent = user.username || `User ${user.id}`;
+                                userSelect.appendChild(option);
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading vocabulary:', error);
+                    showAlert('error', 'Failed to load vocabulary: ' + error.message);
+                });
+        }
+
+        function populateVocabularyTable(vocabList) {
+            const tbody = document.getElementById('vocabTable');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!Array.isArray(vocabList) || vocabList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">No vocabulary found</td></tr>`;
+                return;
+            }
+            vocabList.forEach(vocab => {
+                const date = vocab.dateAdded ? new Date(vocab.dateAdded) : null;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${vocab.id}</td>
+                    <td>${vocab.username || `User ${vocab.userId}`}</td>
+                    <td>${vocab.word}</td>
+                    <td>${vocab.definition || ''}</td>
+                    <td>${vocab.correctCount || 0}</td>
+                    <td>${vocab.difficultyLevel || 1}</td>
+                    <td>${date ? date.toLocaleString() : ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editVocab(${vocab.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteVocab(${vocab.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateVocabPagination(p) {
+            vocabPage = p.page || 1;
+            vocabTotalPages = p.totalPages || 1;
+            document.getElementById('vocabPageInfo').textContent = `Page ${vocabPage} / ${vocabTotalPages}`;
+            document.getElementById('vocabPrev').disabled = vocabPage <= 1;
+            document.getElementById('vocabNext').disabled = vocabPage >= vocabTotalPages;
+        }
+
+        document.getElementById('vocabPrev')?.addEventListener('click', () => {
+            if (vocabPage > 1) loadVocabularyData(vocabPage - 1);
+        });
+        document.getElementById('vocabNext')?.addEventListener('click', () => {
+            if (vocabPage < vocabTotalPages) loadVocabularyData(vocabPage + 1);
+        });
+
+        // Modal actions
+        const vocabModal = new bootstrap.Modal(document.getElementById('vocabModal'));
+        document.getElementById('addVocabBtn')?.addEventListener('click', () => {
+            document.getElementById('vocabModalTitle').textContent = 'Add Vocabulary';
+            document.getElementById('vocabId').value = '';
+            document.getElementById('vocabWord').value = '';
+            document.getElementById('vocabDefinition').value = '';
+            document.getElementById('vocabDifficulty').value = '1';
+            document.getElementById('vocabCorrect').value = '0';
+            vocabModal.show();
+        });
+
+        document.getElementById('saveVocabBtn')?.addEventListener('click', () => {
+            const id = document.getElementById('vocabId').value;
+            const payload = {
+                userId: parseInt(document.getElementById('vocabUser').value, 10),
+                word: document.getElementById('vocabWord').value.trim(),
+                definition: document.getElementById('vocabDefinition').value.trim(),
+                difficultyLevel: parseInt(document.getElementById('vocabDifficulty').value, 10) || 1,
+                correctCount: parseInt(document.getElementById('vocabCorrect').value, 10) || 0,
+            };
+            if (!payload.word) { showAlert('error', 'Word is required'); return; }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/admin/api/vocabulary/${id}` : '/admin/api/vocabulary';
+
+            fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+              .then(r => { if (!r.ok) throw new Error(`${method} failed (${r.status})`); return r.json(); })
+              .then(() => { vocabModal.hide(); loadVocabularyData(vocabPage); showAlert('success', 'Saved'); })
+              .catch(err => { console.error(err); showAlert('error', err.message); });
+        });
+
+        window.editVocab = function(id) {
+            fetch(`/admin/api/vocabulary/${id}`)
+              .then(r => { if (!r.ok) throw new Error(`Get vocab failed (${r.status})`); return r.json(); })
+              .then(v => {
+                document.getElementById('vocabModalTitle').textContent = 'Edit Vocabulary';
+                document.getElementById('vocabId').value = v.id;
+                document.getElementById('vocabUser').value = v.userId;
+                document.getElementById('vocabWord').value = v.word || '';
+                document.getElementById('vocabDefinition').value = v.definition || '';
+                document.getElementById('vocabDifficulty').value = v.difficultyLevel || 1;
+                document.getElementById('vocabCorrect').value = v.correctCount || 0;
+                vocabModal.show();
+              })
+              .catch(err => showAlert('error', err.message));
+        };
+
+        window.deleteVocab = function(id) {
+            if (!confirm('Delete this vocabulary item?')) return;
+            fetch(`/admin/api/vocabulary/${id}`, { method: 'DELETE' })
+              .then(r => { if (!r.ok) throw new Error(`Delete failed (${r.status})`); return r.json(); })
+              .then(() => { loadVocabularyData(vocabPage); showAlert('success', 'Deleted'); })
+              .catch(err => showAlert('error', err.message));
+        };
+
+        // ---------- Feedback ----------
+        function loadFeedback() {
+            console.log('Loading feedback data...');
+            showAlert('info', 'Loading feedback...', 2000);
+            
+            fetch('/admin/api/feedback')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Feedback API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(feedback => {
+                    console.log('Feedback data received:', feedback);
+                    populateFeedbackTable(feedback);
+                })
+                .catch(error => {
+                    console.error('Error loading feedback:', error);
+                    showAlert('error', 'Failed to load feedback: ' + error.message);
+                });
+        }
+
+        function populateFeedbackTable(feedback) {
+            const feedbackTable = document.querySelector('#feedbackTable tbody');
+            if (!feedbackTable) {
+                console.error('Feedback table body not found');
+                return;
+            }
+            
+            feedbackTable.innerHTML = '';
+            
+            if (!feedback || feedback.length === 0) {
+                feedbackTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">No feedback found</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            feedback.forEach(item => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-feedback-id', item.id);
+                row.setAttribute('data-status', item.status || 'new');
+                
+                // Row click to view details
+                row.addEventListener('click', () => {
+                    viewFeedback(item.id);
+                });
+                
+                // Format date
+                const date = new Date(item.dateSubmitted);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                // Status badge color
+                let statusBadgeClass = 'secondary';
+                if (item.status === 'new') statusBadgeClass = 'danger';
+                if (item.status === 'in-progress') statusBadgeClass = 'warning';
+                if (item.status === 'resolved') statusBadgeClass = 'success';
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                            style="width: 40px; height: 40px;">
+                                <i class="bi bi-person" style="font-size: 20px;"></i>
+                            </div>
+                            <div>
+                                ${item.name}
+                                ${item.userId ? `<small class="text-muted">(User)</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>${item.subject}</td>
+                    <td>${formattedDate}</td>
+                    <td><span class="badge bg-${statusBadgeClass}">${item.status || 'new'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary view-feedback-btn" data-feedback-id="${item.id}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-feedback-btn" data-feedback-id="${item.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                feedbackTable.appendChild(row);
+            });
+            
+            // Add event listeners for view and delete buttons
+            document.querySelectorAll('.view-feedback-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const feedbackId = this.getAttribute('data-feedback-id');
+                    viewFeedback(feedbackId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-feedback-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent row click
+                    const feedbackId = this.getAttribute('data-feedback-id');
+                    confirmDeleteFeedback.call(this, feedbackId);
+                });
+            });
+        }
+
+        function viewFeedback(feedbackId) {
+            console.log('Viewing feedback ID:', feedbackId);
+            showAlert('info', 'Loading feedback details...', 2000);
+            
+            // Show loading state
+            document.getElementById('feedbackDetailsCard').style.display = 'block';
+            document.getElementById('feedbackDetailSubject').textContent = 'Loading...';
+            
+            fetch(`/admin/api/feedback/${feedbackId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Feedback API returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(feedback => {
+                    console.log('Feedback details received:', feedback);
+                    
+                    // Populate feedback details
+                    document.getElementById('feedbackDetailSubject').textContent = feedback.subject;
+                    document.getElementById('feedbackDetailName').textContent = feedback.name;
+                    
+                    const emailLink = document.getElementById('feedbackDetailEmail');
+                    emailLink.textContent = feedback.email;
+                    emailLink.setAttribute('href', `mailto:${feedback.email}`);
+                    
+                    const date = new Date(feedback.dateSubmitted);
+                    document.getElementById('feedbackDetailDate').textContent = date.toLocaleString();
+                    
+                    document.getElementById('feedbackDetailMessage').innerHTML = feedback.message.replace(/\n/g, '<br>');
+                    
+                    // Set status
+                    const statusSelect = document.getElementById('feedbackDetailStatus');
+                    statusSelect.value = feedback.status || 'new';
+                    
+                    // Show user info if available
+                    const userInfoContainer = document.getElementById('feedbackDetailUser');
+                    if (feedback.userId && feedback.username) {
+                        userInfoContainer.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                    style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person" style="font-size: 20px;"></i>
+                                </div>
+                                <div>
+                                    <div>${feedback.username}</div>
+                                    <small class="text-muted">${feedback.userEmail}</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary mt-2 view-user-btn" data-user-id="${feedback.userId}">
+                                View User Profile
+                            </button>
+                        `;
+                        
+                        // Add event listener for view user button
+                        document.querySelector('.view-user-btn').addEventListener('click', function() {
+                            const userId = this.getAttribute('data-user-id');
+                            
+                            // Switch to users tab
+                            document.querySelector('a[href="#users"]').click();
+                            
+                            // View user after a small delay to allow tab to switch
+                            setTimeout(() => {
+                                viewUser(userId);
+                            }, 300);
+                        });
+                    } else {
+                        userInfoContainer.innerHTML = `
+                            <div class="alert alert-secondary">
+                                <i class="bi bi-info-circle me-2"></i>
+                                This feedback was submitted by a visitor (not a logged-in user).
+                            </div>
+                        `;
+                    }
+                    
+                    // Update action buttons with current ID
+                    const updateBtn = document.getElementById('updateFeedbackStatus');
+                    const deleteBtn = document.getElementById('deleteFeedbackBtn');
+                    if (updateBtn) updateBtn.setAttribute('data-feedback-id', feedbackId);
+                    if (deleteBtn) deleteBtn.setAttribute('data-feedback-id', feedbackId);
+                })
+                .catch(error => {
+                    console.error('Error loading feedback details:', error);
+                    showAlert('error', 'Failed to load feedback details: ' + error.message);
+                });
+        }
+
+        // Update status
+        function updateFeedbackStatus() {
+            const feedbackId = this.getAttribute('data-feedback-id');
+            const status = document.getElementById('feedbackDetailStatus').value;
+            
+            console.log('Updating feedback status:', feedbackId, status);
+            showAlert('info', 'Updating status...', 2000);
+            
+            fetch(`/admin/api/feedback/${feedbackId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Update API returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Update response:', data);
+                if (data.success) {
+                    showAlert('success', 'Feedback status updated successfully');
+                    
+                    // Refresh feedback list
+                    loadFeedback();
+                    
+                    // If status is resolved, hide details panel
+                    if (status === 'resolved') {
+                        document.getElementById('feedbackDetailsCard').style.display = 'none';
+                    }
+                    
+                    // Refresh dashboard to update feedback badge
+                    loadDashboard();
+                } else {
+                    throw new Error(data.error || 'Failed to update feedback status');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating feedback status:', error);
+                showAlert('error', 'Failed to update feedback status: ' + error.message);
+            });
+        }
+
+        // Delete feedback
+        function confirmDeleteFeedback() {
+            const feedbackId = this.getAttribute('data-feedback-id');
+            
+            if (confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
+                deleteFeedback(feedbackId);
+            }
+        }
+
+        function deleteFeedback(feedbackId) {
+            console.log('Deleting feedback ID:', feedbackId);
+            showAlert('info', 'Deleting feedback...', 2000);
+            
+            fetch(`/admin/api/feedback/${feedbackId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Delete API returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Delete response:', data);
+                if (data.success) {
+                    showAlert('success', 'Feedback deleted successfully');
+                    
+                    // Close feedback details card if open
+                    document.getElementById('feedbackDetailsCard').style.display = 'none';
+                    
+                    // Refresh feedback list and dashboard
+                    loadFeedback();
+                    loadDashboard();
+                } else {
+                    throw new Error(data.error || 'Failed to delete feedback');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting feedback:', error);
+                showAlert('error', 'Failed to delete feedback: ' + error.message);
+            });
+        }
+
+        // Feedback event listeners
+        function setupFeedbackEventListeners() {
+            const updateBtn = document.getElementById('updateFeedbackStatus');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', updateFeedbackStatus);
+            }
+            
+            // Delete feedback button
+            const deleteFeedbackBtn = document.getElementById('deleteFeedbackBtn');
+            if (deleteFeedbackBtn) {
+                deleteFeedbackBtn.addEventListener('click', confirmDeleteFeedback);
+            }
+            
+            // Feedback search input
+            const feedbackSearch = document.getElementById('feedbackSearch');
+            if (feedbackSearch) {
+                feedbackSearch.addEventListener('input', function() {
+                    filterFeedbackTable(this.value.toLowerCase());
+                });
+            }
+            
+            // Feedback status filter dropdown
+            document.querySelectorAll('.dropdown-item[data-filter]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const filter = this.getAttribute('data-filter');
+                    filterFeedbackByStatus(filter);
+                });
+            });
+        }
+
+        function filterFeedbackTable(query) {
+            document.querySelectorAll('#feedbackTable tr').forEach(row => {
+                const subject = row.children[1]?.textContent.toLowerCase() || '';
+                const name = row.children[0]?.textContent.toLowerCase() || '';
+                const match = subject.includes(query) || name.includes(query);
+                row.style.display = match ? '' : 'none';
+            });
+        }
+
+        function filterFeedbackByStatus(status) {
+            document.querySelectorAll('#feedbackTable tr').forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowStatus = row.getAttribute('data-status') || 'new';
+                    row.style.display = (rowStatus === status) ? '' : 'none';
+                }
+            });
+        }
+
+        // ---------- Alerts ----------
+        function showAlert(type, message, timeout = 2500) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi ${type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-exclamation-triangle' : 'bi-info-circle'} me-2"></i>
+                    <div>${message}</div>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            container.appendChild(alert);
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }, timeout);
+        }
+
+        // ---------- Boot ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            showLoadingMessage();
+            loadDashboard();
+            setupTabListeners();
+            setupFeedbackEventListeners();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Snowwords AI Chat</title>
+    <style>
+      /* Updated Winter Theme Variables */
+      :root {
+        --icy-turquoise: #7EC8D8;
+        --frost-blue: #4682B4;
+        --snow-white: #F8F9FA;
+        --polar-night: #2B3A4A;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        color: var(--polar-night);
+        background: var(--snow-white);
+        overflow: hidden; /* No global scrollbar; the chat area will handle it */
+      }
+
+      .page-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* Navbar */
+      .navbar {
+        background: var(--polar-night);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .navbar-brand a {
+        color: var(--snow-white);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+      .nav-links a {
+        color: var(--snow-white);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+      .nav-links a:hover {
+        color: var(--icy-turquoise);
+      }
+      .btn-secondary {
+        background: var(--polar-night);
+        color: var(--snow-white);
+        border: none;
+        border-radius: 0.8rem;
+        padding: 0 1.5rem;
+        cursor: pointer;
+        transition: 0.3s ease;
+        font-size: 1rem;
+        height: 3.125rem; /* match input height */
+        box-sizing: border-box;
+      }
+      .btn-secondary:hover {
+        background: var(--frost-blue);
+      }
+
+      /* Hero Section */
+      .hero-section {
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 2rem;
+        position: relative;
+      }
+      .hero-section h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      /* Tooltip */
+      .tooltip {
+        font-size: 0.9em;
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      /* Main container for Chat + Sidebar */
+      .chat-flex-container {
+        flex: 1;               
+        display: flex;
+        position: relative;
+        overflow: hidden;      
+      }
+
+      /* The Chat Panel - flex layout so #messages can scroll, input bar at bottom */
+      #chat-container {
+        width: 100%;
+        background: var(--snow-white);
+        border-right: 2px solid var(--icy-turquoise);
+        display: flex;
+        flex-direction: column;   
+        transition: width 0.3s ease;
+      }
+
+      /* The scrollable messages area */
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;    /* Hide scrollbar in Firefox */
+      }
+      #messages::-webkit-scrollbar {
+        display: none;           /* Hide scrollbar in Chrome/Edge/Safari */
+      }
+
+      /* Chat Bubbles */
+      .bubble {
+        margin: 1rem;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        line-height: 1.5;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(70, 130, 180, 0.1);
+        word-break: break-word;
+        max-width: 95%;
+      }
+      /* Align user messages on the right side */
+      .user-msg {
+        background: var(--snow-white);
+        border: 2px solid var(--icy-turquoise);
+        align-self: flex-end;   /* Right side alignment in the flex column */
+        text-align: right;      /* Text within bubble also right-aligned */
+      }
+      /* AI messages on the left side */
+      .ai-msg {
+        background: var(--snow-white);
+        border: 2px solid var(--frost-blue);
+        align-self: flex-start; 
+      }
+
+      /* Each clickable word in chat */
+      .word {
+        cursor: pointer;
+        transition: background 0.2s ease;
+        padding: 0.1rem 0.3rem;
+        border-radius: 0.3rem;
+        display: inline-block; /* Fix spacing issues between words */
+        margin-right: 0.1rem; /* Small margin between words */
+      }
+      .word:hover {
+        background: rgba(126, 200, 216, 0.2);
+      }
+
+      /* The Input Bar pinned at bottom of the chat panel */
+      .input-bar {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-top: 2px solid var(--frost-blue);
+        background: var(--snow-white);
+      }
+      #userInput {
+        flex: 1; /* fill leftover space */
+        font-size: 1rem;
+        border: 2px solid var(--frost-blue);
+        border-radius: 0.8rem;
+        padding: 0 1rem;
+        height: 3.125rem; /* same as buttons */
+        box-sizing: border-box;
+      }
+      .btn {
+        background: var(--icy-turquoise);
+        color: var(--snow-white);
+        border: none;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        height: 3.125rem;  
+        box-sizing: border-box;
+        padding: 0 1.5rem;
+      }
+      .btn:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      /* Sidebar (closed by default) */
+      #sidebar {
+        width: 0;
+        background: #eaf6f9; /* subtle bluish background */
+        border-left: 2px solid var(--icy-turquoise);
+        box-sizing: border-box;
+        overflow-y: auto;
+        padding: 0;
+        transition: width 0.3s ease, padding 0.3s ease;
+      }
+      #sidebar-content {
+        padding: 2rem;
+      }
+
+      /* Placeholder shown if no words yet */
+      #no-words-placeholder, #no-msg-placeholder {
+        text-align: center;
+        font-style: italic;
+        color: #777;
+        padding: 1rem;
+        border: 2px dashed var(--icy-turquoise);
+        border-radius: 0.8rem;
+        margin-bottom: 1rem;
+      }
+
+      #no-msg-placeholder {
+        margin-top: 2rem;
+        width: 80%;
+        margin-left: 10%;
+        margin-right: 10%;
+      }
+
+      /* Vocab Items */
+      .vocab-item {
+        background: rgba(126, 200, 216, 0.1);
+        border-radius: 0.8rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--icy-turquoise);
+      }
+
+      /* Word title styling */
+      .word-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--frost-blue);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid var(--icy-turquoise);
+        text-transform: uppercase;
+      }
+
+      /* Definition and example text styling */
+      .definition-text, .example-text {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+        color: var(--polar-night);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .definition-text {
+        font-weight: 500;
+      }
+
+      .example-text {
+        font-style: italic;
+        color: #666;
+      }
+
+      /* Sidebar word spans - make them clickable but with better spacing */
+      #sidebar .word {
+        cursor: pointer;
+        transition: background 0.2s ease;
+        padding: 0.1rem 0.2rem;
+        border-radius: 0.2rem;
+        display: inline;
+        margin: 0;
+        background: transparent;
+      }
+
+      #sidebar .word:hover {
+        background: rgba(126, 200, 216, 0.3);
+      }
+
+      /* .open => show sidebar at 30%, shrink chat to 70% */
+      .open #sidebar {
+        width: 30%;
+      }
+      .open #sidebar-content {
+        padding: 2rem;
+      }
+      .open #chat-container {
+        width: 70%;
+      }
+
+      /* Toggle Arrow between Chat & Sidebar */
+      #toggle-arrow {
+        position: absolute;
+        top: 50%;
+        left: calc(100% - 40px);
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background-color: var(--frost-blue);
+        border-radius: 8px 0 0 8px;
+        color: var(--snow-white);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: left 0.3s ease;
+        z-index: 2;
+      }
+      #toggle-arrow::before {
+        content: '«';
+      }
+      .open #toggle-arrow {
+        left: calc(70% - 40px);
+      }
+      .open #toggle-arrow::before {
+        content: '»';
+      }
+
+      /* Improved Word Popup */
+      #word-popup {
+        display: none;
+        position: fixed; /* Changed from absolute to fixed for better positioning */
+        background: var(--snow-white);
+        border: 2px solid var(--frost-blue);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(70, 130, 180, 0.15);
+        z-index: 1000;
+        max-width: 350px;
+        width: 90%; /* Use percentage for better mobile responsiveness */
+        max-height: 80vh; /* Prevent popup from being too tall */
+        overflow-y: auto; /* Allow scrolling if content is too much */
+        transition: all 0.2s ease;
+      }
+      
+      /* Loading animation */
+      .loading-spinner {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border: 4px solid rgba(126, 200, 216, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--frost-blue);
+        animation: spin 1s ease-in-out infinite;
+        margin: 0 auto;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loading-container {
+        text-align: center;
+        padding: 1.5rem 0;
+      }
+      
+      /* Popup Pointer/Arrow */
+      #word-popup::before {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        /* The arrow position and direction will be set dynamically in JS */
+      }
+      
+      #word-popup.arrow-top::before {
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent var(--frost-blue) transparent;
+        top: -10px;
+        left: 20px;
+      }
+      
+      #word-popup.arrow-bottom::before {
+        border-width: 10px 10px 0 10px;
+        border-color: var(--frost-blue) transparent transparent transparent;
+        bottom: -10px;
+        left: 20px;
+      }
+      
+      #word-popup.arrow-left::before {
+        border-width: 10px 10px 10px 0;
+        border-color: transparent var(--frost-blue) transparent transparent;
+        left: -10px;
+        top: 20px;
+      }
+      
+      #word-popup.arrow-right::before {
+        border-width: 10px 0 10px 10px;
+        border-color: transparent transparent transparent var(--frost-blue);
+        right: -10px;
+        top: 20px;
+      }
+      
+      /* Popup Content Styling */
+      #popup-word {
+        color: var(--frost-blue);
+        font-size: 1.3rem;
+        margin-top: 0;
+        border-bottom: 2px solid var(--icy-turquoise);
+        padding-bottom: 0.5rem;
+      }
+      
+      #popup-close-btn {
+        margin-top: 1rem;
+        width: 100%;
+      }
+
+      /* Typing indicator */
+      .typing-indicator {
+        background: var(--snow-white);
+        border: 2px solid var(--frost-blue);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-style: italic;
+        color: var(--frost-blue);
+      }
+      
+      .typing-indicator .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+        margin: 0;
+      }
+      
+      /* Disabled state for input and button */
+      #userInput:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      
+      .btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+      
+      .btn:disabled:hover {
+        background-color: #ccc;
+        transform: none !important;
+      }
+      
+      /* Validation error states */
+      #userInput.error {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+      
+      .validation-error {
+        animation: slideIn 0.3s ease-out;
+      }
+      
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        .navbar {
+          padding: 0.5rem 1rem;
+        }
+        
+        .navbar-brand a {
+          font-size: 1.2rem;
+        }
+        
+        .nav-links {
+          gap: 1rem;
+        }
+        
+        .hero-section {
+          padding: 1rem;
+        }
+        
+        .hero-section h1 {
+          font-size: 1.5rem;
+        }
+        
+        .hero-section p {
+          font-size: 0.9rem;
+        }
+        
+        /* Chat container adjustments */
+        .bubble {
+          margin: 0.5rem;
+          padding: 0.8rem 1rem;
+          font-size: 0.9rem;
+          max-width: 90%;
+        }
+        
+        .input-bar {
+          padding: 0.3rem 0.5rem;
+          gap: 0.3rem;
+        }
+        
+        #userInput {
+          font-size: 0.9rem;
+          height: 2.5rem;
+        }
+        
+        .btn, .btn-secondary {
+          height: 2.5rem;
+          font-size: 0.9rem;
+          padding: 0 1rem;
+        }
+        
+        /* Sidebar adjustments */
+        .open #sidebar {
+          width: 100%;
+        }
+        
+        .open #chat-container {
+          width: 0;
+          display: none;
+        }
+        
+        #toggle-arrow {
+          display: none;
+        }
+        
+        /* Popup adjustments */
+        #word-popup {
+          max-width: 95%;
+          width: 95%;
+          left: 2.5% !important;
+          right: 2.5% !important;
+        }
+        
+        /* Typing indicator adjustments */
+        .typing-indicator {
+          font-size: 0.8rem;
+        }
+        
+        .typing-indicator .loading-spinner {
+          width: 16px;
+          height: 16px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .bubble {
+          margin: 0.3rem;
+          padding: 0.6rem 0.8rem;
+          font-size: 0.85rem;
+        }
+        
+        .input-bar {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        
+        #userInput {
+          width: 100%;
+        }
+        
+        .btn, .btn-secondary {
+          width: 100%;
+        }
+        
+        /* Hide clear chat button on very small screens */
+        .btn-secondary {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <!-- Navbar -->
+      <div class="navbar">
+        <div class="navbar-brand">
+          <a href="/">❄️ Snowwords Chat</a>
+        </div>
+        <div class="nav-links" role="navigation">
+          <a href="/profile">Profile</a>
+          <a href="/vocab">Vocab</a>
+          <a href="/activities" class="active">Activities</a>
+          <a href="/logout">Logout</a>
+      </div>
+      </div>
+
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <h1>Chat with Frosty the AI ❄️</h1>
+        <p>Learn English naturally through conversation and grow your vocabulary snowball!</p>
+      </div>
+      <!-- Container for Chat + Sidebar -->
+      <div class="chat-flex-container" id="chatSidebarContainer">
+        <!-- Chat Panel -->
+        <div id="chat-container">
+          <!-- Scrollable messages area -->
+          <div id="no-msg-placeholder">Ask the AI Buddy anything of your interest</div>
+          <div id="messages">
+            <!-- EJS loop for existing messages -->
+            <% messages.forEach((msg) => { %>
+              <div class="bubble <%= (msg.role === 'user') ? 'user-msg' : 'ai-msg' %>">
+                <% msg.content.split(' ').forEach((word) => { %>
+                  <span class="word"><%= word %></span>
+                <% }) %>
+              </div>
+            <% }) %>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="input-bar">
+            <input type="text" id="userInput" placeholder="Type your message..." />
+            <button class="btn" id="sendBtn">Send</button>
+            <form action="/chat/clear" method="POST" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn-secondary" type="submit">Clear Chat</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Arrow to toggle the sidebar -->
+        <div id="toggle-arrow"></div>
+
+        <!-- Sidebar: Word Definitions & Examples -->
+        <div id="sidebar">
+          <div id="sidebar-content">
+            <h2>Word Definitions &amp; Examples</h2>
+            <h4>Snowball Size: <%= snowballSize %> words</h4>
+            <!-- Placeholder text if no words in sidebar yet -->
+            <div id="no-words-placeholder" style="<%= vocab && vocab.length > 0 ? 'display: none;' : '' %>">No words yet! Click on a word you don't understand to see its definition and add it to your Snowball.</div>
+            <div id="sidebar-list">
+              <% if (vocab && vocab.length > 0) { %>
+                <% vocab.forEach((item) => { %>
+                  <div class="vocab-item">
+                    <div class="word-title"><%= item.word %></div>
+                    <div class="definition-text"><%= item.definition %></div>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup for definition & example -->
+    <div id="word-popup">
+      <h4 id="popup-word"></h4>
+      <div id="popup-content">
+        <p id="popup-definition"></p>
+        <p id="popup-example"></p>
+        <p id="word-note"></p>
+      </div>
+      <div id="loading-container" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Looking up word definition...</p>
+      </div>
+      <button class="btn-secondary" id="popup-close-btn">Close</button>
+    </div>
+
+    <script>
+      // Elements
+      const messagesDiv = document.getElementById('messages');
+      const userInput = document.getElementById('userInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const popup = document.getElementById('word-popup');
+      const popupWord = document.getElementById('popup-word');
+      const popupDefinition = document.getElementById('popup-definition');
+      const popupExample = document.getElementById('popup-example');
+      const popupNote = document.getElementById('word-note');
+      const popupCloseBtn = document.getElementById('popup-close-btn');
+      const sidebarList = document.getElementById('sidebar-list');
+      const noWordsPlaceholder = document.getElementById('no-words-placeholder');
+      const noMessagePlaceholder = document.getElementById('no-msg-placeholder');
+
+      // Sidebar toggle arrow
+      const chatSidebarContainer = document.getElementById('chatSidebarContainer');
+      const toggleArrow = document.getElementById('toggle-arrow');
+
+      // Cache definitions to avoid repeated lookups
+      const definitionCache = {};
+
+      chatSidebarContainer.classList.toggle('open');
+
+      // Toggle the sidebar open/closed
+      toggleArrow.addEventListener('click', () => {
+        chatSidebarContainer.classList.toggle('open');
+      });
+
+      async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        // Disable input and button during sending
+        userInput.disabled = true;
+        sendBtn.disabled = true;
+        const originalBtnText = sendBtn.textContent;
+        sendBtn.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div> Sending...';
+        
+        addMessageBubble(text, true);
+        userInput.value = '';
+
+        // Add typing indicator for AI response
+        const typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('bubble', 'ai-msg', 'typing-indicator');
+        typingIndicator.innerHTML = '<div class="loading-spinner"></div> AI is typing...';
+        messagesDiv.appendChild(typingIndicator);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken  // ADD THIS HEADER
+            },
+            body: JSON.stringify({ message: text })
+          });
+          
+          // Remove typing indicator
+          typingIndicator.remove();
+          
+          const data = await response.json();
+
+          if (data.reply) {
+            addMessageBubble(data.reply, false);
+          } else if (data.error) {
+            addMessageBubble('❌ ' + data.error, false);
+          }
+        } catch (err) {
+          // Remove typing indicator
+          typingIndicator.remove();
+          addMessageBubble('❌ Network error. Please check your connection and try again.', false);
+        } finally {
+          // Re-enable input and button
+          userInput.disabled = false;
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalBtnText;
+          userInput.focus();
+        }
+      }
+
+      // Send message logic
+      sendBtn.addEventListener('click', async () => {
+        if (validateMessage()) {
+          sendMessage();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (validateMessage()) {
+            sendMessage();
+          }
+        }
+      });
+
+      // Form validation
+      function validateMessage() {
+        const text = userInput.value.trim();
+        const maxLength = 500;
+        
+        // Clear previous error states
+        userInput.classList.remove('error');
+        const existingError = document.querySelector('.validation-error');
+        if (existingError) {
+          existingError.remove();
+        }
+        
+        // Check if message is empty
+        if (!text) {
+          showValidationError('Please enter a message');
+          return false;
+        }
+        
+        // Check message length
+        if (text.length > maxLength) {
+          showValidationError(`Message is too long (${text.length}/${maxLength} characters)`);
+          return false;
+        }
+        
+        // Check for potentially harmful content (basic check)
+        if (text.includes('<script>') || text.includes('javascript:')) {
+          showValidationError('Message contains invalid content');
+          return false;
+        }
+        
+        return true;
+      }
+      
+      function showValidationError(message) {
+        userInput.classList.add('error');
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.classList.add('validation-error');
+        errorDiv.textContent = message;
+        errorDiv.style.cssText = `
+          color: #dc3545;
+          font-size: 0.9rem;
+          margin-top: 0.5rem;
+          padding: 0.5rem;
+          background: #f8d7da;
+          border: 1px solid #f5c6cb;
+          border-radius: 0.3rem;
+        `;
+        
+        userInput.parentNode.appendChild(errorDiv);
+        
+        // Auto-remove error after 3 seconds
+        setTimeout(() => {
+          if (errorDiv.parentNode) {
+            errorDiv.remove();
+            userInput.classList.remove('error');
+          }
+        }, 3000);
+      }
+
+      function addMessageBubble(text, isUser) {
+        // If we haven't added any message yet, hide the placeholder
+        if (noMessagePlaceholder.style.display !== 'none') {
+          noMessagePlaceholder.style.display = 'none';
+        }
+
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble', isUser ? 'user-msg' : 'ai-msg');
+
+        text.split(' ').forEach(word => {
+          const span = document.createElement('span');
+          span.classList.add('word');
+          span.textContent = word;
+          bubble.appendChild(span);
+        });
+
+        messagesDiv.appendChild(bubble);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      // Calculate and position the popup without showing it
+      function calculateAndPositionPopup(clickX, clickY, targetElement) {
+        // Reset all arrow classes
+        popup.classList.remove('arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right');
+        
+        // Get dimensions
+        const popupWidth = popup.offsetWidth;
+        const popupHeight = popup.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Default margin from edges
+        const margin = 20;
+        
+        // Check if sidebar is open
+        const isSidebarOpen = chatSidebarContainer.classList.contains('open');
+        const sidebarWidth = isSidebarOpen ? Math.round(viewportWidth * 0.3) : 0; // 30% of viewport
+        
+        // Adjust effective viewport width to account for sidebar
+        const effectiveViewportWidth = viewportWidth - sidebarWidth;
+        
+        // Calculate available space in each direction
+        const spaceAbove = clickY;
+        const spaceBelow = viewportHeight - clickY;
+        const spaceLeft = clickX;
+        const spaceRight = effectiveViewportWidth - clickX;
+        
+        // Default to centered for very small screens
+        if (viewportWidth < 480) {
+          popup.style.left = (effectiveViewportWidth - popupWidth) / 2 + 'px';
+          popup.style.top = (viewportHeight - popupHeight) / 2 + 'px';
+          return;
+        }
+        
+        // Determine best position based on available space
+        if (spaceBelow >= popupHeight || spaceBelow >= spaceAbove) {
+          // Position below the word
+          popup.style.top = (clickY + 15) + 'px';
+          popup.classList.add('arrow-top');
+          
+          // Adjust horizontal position
+          if (spaceRight >= popupWidth) {
+            popup.style.left = clickX + 'px';
+          } else {
+            popup.style.left = (clickX - popupWidth + targetElement.offsetWidth) + 'px';
+          }
+        } 
+        else if (spaceAbove >= popupHeight) {
+          // Position above the word
+          popup.style.top = (clickY - popupHeight - 15) + 'px';
+          popup.classList.add('arrow-bottom');
+          
+          // Adjust horizontal position
+          if (spaceRight >= popupWidth) {
+            popup.style.left = clickX + 'px';
+          } else {
+            popup.style.left = (clickX - popupWidth + targetElement.offsetWidth) + 'px';
+          }
+        }
+        else if (spaceRight >= popupWidth) {
+          // Position to the right
+          popup.style.left = (clickX + targetElement.offsetWidth + 15) + 'px';
+          popup.style.top = (clickY - popupHeight/3) + 'px';
+          popup.classList.add('arrow-left');
+        }
+        else {
+          // Position to the left
+          popup.style.left = (clickX - popupWidth - 15) + 'px';
+          popup.style.top = (clickY - popupHeight/3) + 'px';
+          popup.classList.add('arrow-right');
+        }
+        
+        // Final safety check to ensure popup is within viewport and doesn't overlap sidebar
+        const popupRect = popup.getBoundingClientRect();
+        
+        if (popupRect.left < margin) {
+          popup.style.left = margin + 'px';
+        }
+        
+        if (isSidebarOpen) {
+          // If sidebar is open, ensure popup doesn't go beyond the chat container area
+          const chatContainerWidth = Math.round(viewportWidth * 0.7); // 70% of viewport when sidebar is open
+          
+          if (popupRect.right > chatContainerWidth - margin) {
+            // If popup would overlap sidebar, reposition it
+            popup.style.left = (chatContainerWidth - popupWidth - margin) + 'px';
+          }
+        } else {
+          // Normal check if sidebar is closed
+          if (popupRect.right > viewportWidth - margin) {
+            popup.style.left = (viewportWidth - popupWidth - margin) + 'px';
+          }
+        }
+        
+        if (popupRect.top < margin) {
+          popup.style.top = margin + 'px';
+        }
+        if (popupRect.bottom > viewportHeight - margin) {
+          popup.style.top = (viewportHeight - popupHeight - margin) + 'px';
+        }
+      }
+
+      // Single-click for word definitions with improved positioning
+      document.addEventListener('click', async (e) => {
+        if (!e.target.classList.contains('word')) return;
+        const unfilted = e.target.textContent.trim();
+        if (!unfilted) return;
+
+        const word = unfilted.replace(/[^a-zA-Z]/g, '');
+        if (!word) return; // Skip if no letters in the word
+        
+        // IMPORTANT: Calculate position first with temporarily hidden popup
+        // Make sure the popup is hidden but has its correct structure for measurement
+        popup.style.visibility = 'hidden';
+        popup.style.display = 'block';
+        
+        // Show loading state in the hidden popup
+        document.getElementById('loading-container').style.display = 'block';
+        document.getElementById('popup-content').style.display = 'none';
+        popupWord.textContent = word;
+        
+        // Force browser reflow to ensure dimensions are calculated
+        popup.offsetHeight;
+        
+        // Now properly position the still-hidden popup
+        calculateAndPositionPopup(e.clientX, e.clientY, e.target);
+        
+        // Finally make visible after positioned correctly
+        popup.style.visibility = 'visible';
+
+        // Check cache
+        if (definitionCache[word]) {
+          const cached = definitionCache[word];
+          // Short timeout to show loading animation even for cached results
+          setTimeout(() => {
+            showPopupData(word, cached.definition, cached.example, cached.note);
+          }, 300);
+          return;
+        }
+
+        // Otherwise fetch from server
+        try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+          const response = await fetch('/api/vocab/aiLookup', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken  // ADD THIS HEADER
+            },
+            body: JSON.stringify({ word })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+
+          if (data.error) {
+            throw new Error(data.error);
+          }
+
+          // Cache it
+          definitionCache[word] = data;
+          showPopupData(data.word, data.definition, data.example, data.note);
+          appendToSidebar(data.word, data.definition, data.example);
+        } catch (err) {
+          console.error('Error fetching word data:', err);
+          
+          let errorMessage = "Couldn't retrieve definition. Please try again.";
+          
+          if (err.message.includes('HTTP 429')) {
+            errorMessage = "Too many requests. Please wait a moment and try again.";
+          } else if (err.message.includes('HTTP 500')) {
+            errorMessage = "Server error. Please try again later.";
+          } else if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+            errorMessage = "Network error. Please check your connection and try again.";
+          }
+          
+          // Show error in popup
+          showPopupData(word, errorMessage, "", "Click the word again to retry.");
+        }
+      });
+
+      function showPopupData(word, definition, example, note) {
+        popupWord.textContent = word || '';
+        popupDefinition.textContent = definition || '(No definition found)';
+        popupExample.textContent = example ? `Example: ${example}` : '(No example)';
+        popupNote.textContent = note || '';
+        
+        // Hide loading spinner, show content
+        document.getElementById('loading-container').style.display = 'none';
+        document.getElementById('popup-content').style.display = 'block';
+        
+        // Make sure popup is still positioned correctly after content loads
+        const popupRect = popup.getBoundingClientRect();
+        if (popupRect.bottom > window.innerHeight) {
+          popup.style.top = (window.innerHeight - popupRect.height - 20) + 'px';
+        }
+      }
+
+      // Append new word to sidebar (and remove placeholder if present)
+      function appendToSidebar(word, definition, example) {
+        // If we haven't added any words yet, hide the placeholder
+        if (noWordsPlaceholder.style.display !== 'none') {
+          noWordsPlaceholder.style.display = 'none';
+        }
+
+        // Avoid duplicates
+        const existingItems = document.querySelectorAll('.vocab-item .word-title');
+        for (let item of existingItems) {
+          if (item.textContent.trim() === word) {
+            return;
+          }
+        }
+
+        // Create new vocab item
+        const container = document.createElement('div');
+        container.classList.add('vocab-item');
+
+        const title = document.createElement('div');
+        title.classList.add('word-title');
+        title.textContent = word; // Use textContent instead of innerHTML for the title
+        container.appendChild(title);
+
+        const defPara = document.createElement('div');
+        defPara.classList.add('definition-text');
+        defPara.textContent = `Definition: ${definition || '(No definition)'}`;
+        container.appendChild(defPara);
+
+        const exPara = document.createElement('div');
+        exPara.classList.add('example-text');
+        exPara.textContent = `Example: ${example || '(No example)'}`;
+        container.appendChild(exPara);
+
+        sidebarList.prepend(container);
+      }
+
+      function wrapWordsInSpan(text) {
+        if (!text) return '';
+        return text
+          .split(' ')
+          .map(w => `<span class="word">${w}</span>`)
+          .join(' ');
+      }
+
+      // Close the popup when clicking outside of it
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('word') || popup.contains(e.target)) {
+          return; // Don't close if clicking on a word or inside the popup
+        }
+        popup.style.display = 'none';
+      });
+
+      // Close the popup with the close button
+      popupCloseBtn.addEventListener('click', () => {
+        popup.style.display = 'none';
+      });
+      
+      // Close popup when pressing Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          popup.style.display = 'none';
+        }
+      });
+    </script>
+  </body>
+</html>

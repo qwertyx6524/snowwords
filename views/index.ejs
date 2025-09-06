@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- FIXED: Page title better suited to content -->
+    <title>Snowwords - English Vocabulary Learning through AI Conversation</title>
+    
+    <!-- SEO Meta Tags -->
+    <!-- FIXED: Improved meta description text -->
+    <meta name="description" content="Learn English vocabulary through interactive AI conversations and games with Snowwords. Build your personal vocabulary collection, practice with quizzes, and track your learning progress in a fun winter-themed environment." />
+    <meta name="keywords" content="english learning, vocabulary builder, AI language learning, language games, ESL" />
+    <meta name="author" content="Snowwords" />
+    <link rel="canonical" href="https://snowwords.com/" />
+    
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="Snowwords - English Vocabulary Learning through AI Conversation" />
+    <meta property="og:description" content="Learn English vocabulary through interactive AI conversations and games with Snowwords. Build your personal vocabulary collection, practice with quizzes, and track your learning progress." />
+    <meta property="og:image" content="https://snowwords.com/images/snowwords-social.jpg" />
+    <meta property="og:url" content="https://snowwords.com" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;700&display=swap" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Snowwords",
+      "url": "https://snowwords.com/",
+      "description": "English vocabulary learning through AI conversations, games, and personalized practice",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://snowwords.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <style>
+      /* Winter Theme Styles */
+      :root {
+        --icy-turquoise: #7EC8D8;
+        --frost-blue: #4682B4;
+        --snow-white: #F8F9FA;
+        --polar-night: #2B3A4A;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: var(--polar-night);
+        background: var(--snow-white);
+        line-height: 1.6;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Navbar */
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        background: var(--polar-night);
+        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+      }
+
+      .navbar-brand a {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--snow-white);
+        text-decoration: none;
+        letter-spacing: 0.5px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--snow-white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        padding: 0.5rem;
+      }
+
+      .nav-links a:hover {
+        color: var(--icy-turquoise);
+      }
+
+      /* Hero Section */
+      .hero-section {
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        left: -50px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 30% 70% 70% 30%;
+        transform: rotate(45deg);
+      }
+
+      .hero-section h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-section p {
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Feature Grid */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+      }
+
+      .feature-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+        transition: transform 0.3s ease;
+        position: relative;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-card::before {
+        content: '❄️';
+        position: absolute;
+        top: -20px;
+        right: -10px;
+        font-size: 2rem;
+        opacity: 0.2;
+      }
+
+      .feature-card h2 {
+        color: var(--frost-blue);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background: var(--icy-turquoise);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(126, 200, 216, 0.3);
+      }
+
+      .btn-primary:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary {
+        background: var(--polar-night);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-secondary:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(70, 130, 180, 0.08);
+      }
+
+      .stat-number {
+        color: var(--icy-turquoise);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Progress Section */
+      .progress-section {
+        background: rgba(126, 200, 216, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+      }
+
+      .progress-bar {
+        height: 12px;
+        background: rgba(70, 130, 180, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--icy-turquoise);
+        border-radius: 6px;
+        transition: width 0.5s ease;
+      }
+
+      footer {
+        background: var(--polar-night);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 2rem;
+        margin-top: 4rem;
+      }
+
+      /* Chrome Extension Promotion Styles */
+      .extension-promotion {
+        background: linear-gradient(135deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin: 3rem 0;
+        color: var(--snow-white);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .extension-promotion::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: rotate(15deg);
+      }
+
+      .extension-content {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 3rem;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .extension-info h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--snow-white);
+      }
+
+      .extension-info p {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+
+      .extension-features {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+      }
+
+      .extension-features li {
+        padding: 0.5rem 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-extension {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--snow-white);
+        color: var(--polar-night);
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        margin-top: 1rem;
+      }
+
+      .btn-extension:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+        background: #f0f0f0;
+      }
+
+      .btn-extension span {
+        font-size: 1.2rem;
+      }
+
+      .btn-extension small {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-top: 0.2rem;
+      }
+
+      .extension-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .extension-mockup {
+        background: var(--snow-white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        color: var(--polar-night);
+        min-width: 250px;
+      }
+
+      .extension-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(43, 58, 74, 0.1);
+      }
+
+      .extension-icon {
+        font-size: 1.2rem;
+      }
+
+      .extension-name {
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .extension-preview p {
+        margin: 0 0 1rem 0;
+        font-size: 0.9rem;
+        color: var(--polar-night);
+      }
+
+      .extension-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .extension-btn-save {
+        background: var(--icy-turquoise);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        flex: 1;
+      }
+
+      .extension-btn-skip {
+        background: transparent;
+        color: var(--polar-night);
+        border: 1px solid rgba(43, 58, 74, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        flex: 1;
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+        }
+
+        .hero-section h1 {
+          font-size: 2rem;
+        }
+
+        .features {
+          grid-template-columns: 1fr;
+        }
+
+        .extension-content {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          text-align: center;
+        }
+
+        .extension-info h2 {
+          font-size: 1.5rem;
+        }
+
+        .extension-promotion {
+          padding: 2rem 1rem;
+        }
+
+        .extension-mockup {
+          min-width: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a href="/" aria-label="Snowwords Home">❄️ Snowwords</a>
+        </div>
+        <div class="nav-links" role="navigation">
+          <% if (user) { %>
+            <a href="/profile">Profile</a>
+            <a href="/vocab">Vocab</a>
+            <a href="/activities" class="active">Activities</a>
+            <a href="/logout">Logout</a>
+          <% } else { %>
+            <a href="/signup">Sign Up</a>
+            <a href="/login">Login</a>
+          <% } %>
+        </div>
+      </nav>
+    </header>
+    <section class="hero-section">
+      <div class="container">
+        <!-- FIXED: H1 heading better suited to page content -->
+        <h1>Improve Your English Vocabulary with AI Conversations ❄️</h1>
+        <p>Master English with AI-powered snow-themed lessons, vocabulary games, and interactive challenges designed to make learning stick.</p>
+        <% if (!user) { %>
+          <button class="btn-primary" onclick="location.href='/activities'">Start Free Journey</button>
+        <% } else { %>
+          <button class="btn-primary" onclick="location.href='/activities'">Continue Learning</button>
+        <% } %>
+      </div>
+    </section>
+
+    <main class="container">
+      <% if (user) { %>
+        <div class="progress-section">
+          <h2>Your Snowball Progress</h2>
+          <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= user.progress %>">
+            <div class="progress-fill"></div>
+          </div>
+          <p>You've mastered <%= user.learnedCount %> snowflakes (words)! ❄️</p>
+        </div>
+      <% } %>
+
+      <div class="features">
+        <div class="feature-card">
+          <h2>AI Buddy</h2>
+          <p>Chat with our AI Buddy to discover and learn new English words through engaging, personalized conversations.</p>
+          <button class="btn-secondary" onclick="location.href='/chat'">Start Chatting</button>
+        </div>
+
+        <div class="feature-card">
+          <h2>Vocabulary Snowball</h2>
+          <p>Collect and store words in your personal Snowball. Melt words into memory through spaced repetition and mini-games.</p>
+          <button class="btn-secondary" onclick="location.href='/vocab'">Explore Snowball</button>
+        </div>
+
+        <div class="feature-card">
+          <h2>Quizzes & Flashcards</h2>
+          <p>Sharpen your vocabulary with fun flashcards and quick quizzes for effective practice and lasting knowledge.</p>
+          <button class="btn-secondary" onclick="location.href='/test'">Start Quiz</button>
+        </div>
+      </div>
+
+      <!-- Chrome Extension Promotion Section -->
+      <div class="extension-promotion">
+        <div class="extension-content">
+          <div class="extension-info">
+            <h2>🚀 Enhance Your Learning with Our Chrome Extension</h2>
+            <p>Take Snowwords with you everywhere! Our Chrome extension helps you learn vocabulary while browsing the web. Save words from any webpage and practice them later in your Snowball.</p>
+            <ul class="extension-features">
+              <li>✨ Save words from any website with one click</li>
+              <li>🎯 Get vocabulary suggestions while reading</li>
+              <li>📚 Sync with your Snowwords account</li>
+              <li>🎮 Practice saved words in mini-games</li>
+            </ul>
+            <a href="https://chromewebstore.google.com/detail/fdfheibfeofjfcnadffjfhfaafenfklk?authuser=0&hl=en-GB" target="_blank" rel="noopener noreferrer" class="btn-extension">
+              <span>📥 Download for Chrome</span>
+              <small>Free</small>
+            </a>
+          </div>
+          <div class="extension-visual">
+            <div class="extension-mockup">
+              <div class="extension-header">
+                <span class="extension-icon">❄️</span>
+                <span class="extension-name">Snowwords</span>
+              </div>
+              <div class="extension-preview">
+                <p>"Save this word to your Snowball?"</p>
+                <div class="extension-buttons">
+                  <button class="extension-btn-save">Save Word</button>
+                  <button class="extension-btn-skip">Skip</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="progress-section">
+        <h2>How It Works</h2>
+        <div style="display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div>
+            <h3>1. Chat ❄️</h3>
+            <p>Start with casual conversations about winter topics</p>
+          </div>
+          <div>
+            <h3>2. Collect 🌨️</h3>
+            <p>Save new words to your personal snowbank</p>
+          </div>
+          <div>
+            <h3>3. Master ⛄</h3>
+            <p>Reinforce learning through games and quizzes</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; <%= new Date().getFullYear() %> Snowwords. All Rights Reserved.</p>
+      <nav aria-label="Footer Navigation">
+        <a href="/privacy-policy">Privacy Policy</a> | 
+        <a href="/feedback">Share Feedback</a>
+      </nav>
+    </footer>
+
+    <% if (user) { %>
+      <script>
+        var progress = '<%= user.progress %>';
+        document.getElementsByClassName('progress-fill')[0].style.width = progress + '%';
+      </script>
+    <% } %>
+    
+    <!-- Defer non-critical JavaScript -->
+    <script defer src="/js/main.js"></script>
+  </body>
+</html>

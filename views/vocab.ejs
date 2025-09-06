@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Vocabulary Snowbank</title>
+    <style>
+      :root {
+        --icy-turquoise: #7EC8D8;
+        --frost-blue: #4682B4;
+        --snow-white: #F8F9FA;
+        --polar-night: #2B3A4A;
+        --mastered-green: #4CAF50;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: var(--snow-white);
+        color: var(--polar-night);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .navbar {
+        background: var(--polar-night);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-brand a {
+        color: var(--snow-white);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--snow-white);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--icy-turquoise);
+      }
+
+      .hero-section {
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .hero-section h1 {
+        font-size: 2.5rem;
+        margin: 0 0 1rem 0;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        color: var(--frost-blue);
+        margin: 1.5rem 0 1rem;
+        border-bottom: 2px solid var(--icy-turquoise);
+        padding-bottom: 0.5rem;
+      }
+
+      .vocab-list {
+        margin-bottom: 2rem;
+      }
+
+      .vocab-item {
+        background: var(--snow-white);
+        border: 2px solid var(--icy-turquoise);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(70, 130, 180, 0.1);
+        position: relative;
+        transition: transform 0.2s ease;
+      }
+
+      .vocab-item:hover {
+        transform: translateY(-3px);
+      }
+
+      .vocab-item::before {
+        content: '❄️';
+        position: absolute;
+        left: -15px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.5;
+      }
+
+      .vocab-word {
+        font-weight: 700;
+        color: var(--frost-blue);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .vocab-def {
+        color: var(--polar-night);
+        line-height: 1.6;
+      }
+
+      /* Badge for mastered words */
+      .mastered-badge {
+        display: inline-block;
+        background: var(--mastered-green);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+      }
+
+      /* Button to link to the quiz page */
+      .btn-quiz {
+        background: var(--icy-turquoise);
+        color: var(--snow-white);
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 0.8rem;
+        font-size: 1.1rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin: 2rem auto;
+      }
+
+      .btn-quiz:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .hero-section h1 {
+          font-size: 2rem;
+        }
+        
+        .vocab-item::before {
+          display: none;
+        }
+        
+        /* Mobile search improvements */
+        .search-section {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .search-input,
+        .filter-select {
+          width: 100%;
+        }
+        
+        .btn-quiz {
+          display: block;
+          width: 100%;
+          margin: 1rem 0;
+        }
+      }
+      
+      /* Search and filter styles */
+      .search-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        align-items: center;
+      }
+      
+      .search-input {
+        flex: 1;
+        padding: 0.8rem 1rem;
+        border: 2px solid var(--icy-turquoise);
+        border-radius: 0.8rem;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+      
+      .search-input:focus {
+        outline: none;
+        border-color: var(--frost-blue);
+        box-shadow: 0 0 0 0.2rem rgba(70, 130, 180, 0.25);
+      }
+      
+      .filter-select {
+        padding: 0.8rem 1rem;
+        border: 2px solid var(--icy-turquoise);
+        border-radius: 0.8rem;
+        font-size: 1rem;
+        background: var(--snow-white);
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+      }
+      
+      .filter-select:focus {
+        outline: none;
+        border-color: var(--frost-blue);
+      }
+      
+      /* Loading indicator */
+      .loading-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        color: var(--frost-blue);
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(126, 200, 216, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--frost-blue);
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 1rem;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* No words message */
+      .no-words-message {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        padding: 2rem;
+        background: var(--snow-white);
+        border: 2px dashed var(--icy-turquoise);
+        border-radius: 0.8rem;
+      }
+      
+      /* Improved mobile responsiveness */
+      @media (max-width: 480px) {
+        .hero-section {
+          padding: 2rem 1rem;
+        }
+        
+        .hero-section h1 {
+          font-size: 1.8rem;
+        }
+        
+        .section-title {
+          font-size: 1.5rem;
+        }
+        
+        .vocab-item {
+          padding: 1rem;
+          margin-bottom: 1rem;
+        }
+        
+        .vocab-word {
+          font-size: 1.1rem;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/styles/snowwords.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a href="/">❄️ Vocab</a>
+      </div>
+      <div class="nav-links">
+        <div class="nav-links" role="navigation">
+          <a href="/profile">Profile</a>
+          <a href="/vocab">Vocab</a>
+          <a href="/activities" class="active">Activities</a>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero-section">
+      <h1>Your Vocabulary Snowbank ❄️</h1>
+      <p>Every word you collect makes your snowball grow!</p>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="/test" class="btn-quiz">Take the Vocabulary Quiz</a>
+      <a href="/review" class="btn-quiz">Review through flashcards</a>
+    </div>
+
+    <div class="container">
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <input type="text" id="searchInput" placeholder="Search your vocabulary..." class="search-input">
+        <select id="filterSelect" class="filter-select">
+          <option value="all">All Words</option>
+          <option value="learned">Learned Only</option>
+          <option value="learning">Still Learning</option>
+        </select>
+      </div>
+
+      <!-- Loading indicator -->
+      <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Loading vocabulary...</p>
+      </div>
+
+
+
+      <!-- Words Learnt Section -->
+      <% let learnedWords = vocabList ? vocabList.filter(item => (item.correctcount || 0) >= 5) : []; %>
+      <div class="section-title" id="learnedSection">
+        Words Learnt (<span id="learnedCount"><%= learnedWords.length %></span>)
+      </div>
+      <div class="vocab-list" id="learnedList">
+        <% if (learnedWords.length > 0) { %>
+          <% learnedWords.forEach(item => { %>
+            <div class="vocab-item" data-word="<%= item.word.toLowerCase() %>" data-category="learned">
+              <div class="vocab-word">
+                <%= item.word %>
+                <span class="mastered-badge">Mastered</span>
+              </div>
+              <div class="vocab-def"><%= item.definition %></div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p class="no-words-message">You haven't mastered any words yet. Keep practicing!</p>
+        <% } %>
+      </div>
+
+      <!-- Vocabulary Bank Section -->
+      <div class="section-title" id="learningSection">
+        Still Learning (<span id="learningCount"><%= vocabList ? vocabList.filter(item => (item.correctcount || 0) < 5).length : 0 %></span>)
+      </div>
+      <div class="vocab-list" id="learningList">
+        <% let remainingWords = vocabList ? vocabList.filter(item => (item.correctcount || 0) < 5) : []; %>
+        <% if (remainingWords.length > 0) { %>
+          <% remainingWords.forEach(item => { %>
+            <div class="vocab-item" data-word="<%= item.word.toLowerCase() %>" data-category="learning">
+              <div class="vocab-word"><%= item.word %></div>
+              <div class="vocab-def"><%= item.definition %></div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p class="no-words-message">All your words are mastered!</p>
+        <% } %>
+      </div>
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="/chat" class="btn">Back to Chat</a>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; <%= new Date().getFullYear() %> Snowwords. All Rights Reserved.</p>
+      <nav aria-label="Footer Navigation">
+        <a href="/privacy-policy">Privacy Policy</a> | 
+        <a href="/feedback">Share Feedback</a>
+      </nav>
+    </footer>
+
+    <script>
+      // Search and filter functionality
+      const searchInput = document.getElementById('searchInput');
+      const filterSelect = document.getElementById('filterSelect');
+      const vocabItems = document.querySelectorAll('.vocab-item');
+      const learnedCount = document.getElementById('learnedCount');
+      const learningCount = document.getElementById('learningCount');
+
+      function filterVocabulary() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterValue = filterSelect.value;
+        let visibleCount = 0;
+
+        vocabItems.forEach(item => {
+          const word = item.getAttribute('data-word');
+          const category = item.getAttribute('data-category');
+          const matchesSearch = word.includes(searchTerm);
+          const matchesFilter = filterValue === 'all' || category === filterValue;
+
+          if (matchesSearch && matchesFilter) {
+            item.style.display = 'block';
+            visibleCount++;
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        // Update counts
+        updateCounts();
+      }
+
+      function updateCounts() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterValue = filterSelect.value;
+        
+        let learnedVisible = 0;
+        let learningVisible = 0;
+
+        vocabItems.forEach(item => {
+          const word = item.getAttribute('data-word');
+          const category = item.getAttribute('data-category');
+          const matchesSearch = word.includes(searchTerm);
+          const matchesFilter = filterValue === 'all' || category === filterValue;
+
+          if (matchesSearch && matchesFilter) {
+            if (category === 'learned') {
+              learnedVisible++;
+            } else {
+              learningVisible++;
+            }
+          }
+        });
+
+        learnedCount.textContent = learnedVisible;
+        learningCount.textContent = learningVisible;
+      }
+
+      // Event listeners
+      searchInput.addEventListener('input', filterVocabulary);
+      filterSelect.addEventListener('change', filterVocabulary);
+
+      // Show loading indicator on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'flex';
+        
+        // Hide loading after a short delay to simulate loading
+        setTimeout(() => {
+          loadingIndicator.style.display = 'none';
+        }, 500);
+      });
+    </script>
+  </body>
+</html>

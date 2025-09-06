@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snowwords Premium - Choose Your Plan</title>
+  <style>
+    /* Winter Theme Variables */
+    :root {
+      --icy-turquoise: #7EC8D8;
+      --frost-blue: #4682B4;
+      --snow-white: #F8F9FA;
+      --polar-night: #2B3A4A;
+      --accent-orange: #FF6B6B;
+      --accent-yellow: #FFD700;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--polar-night);
+      background: var(--snow-white);
+      line-height: 1.6;
+    }
+    
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    /* Navbar */
+    .navbar {
+      background: var(--polar-night);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .navbar-brand a {
+      color: var(--snow-white);
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: var(--snow-white);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      color: var(--icy-turquoise);
+    }
+    
+    /* Hero Section */
+    .hero-section {
+      background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+      color: var(--snow-white);
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+    
+    .hero-section h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .hero-section p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    /* Plans Grid */
+    .plans-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .plan-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .plan-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .plan-header {
+      background: #f8f9fa;
+      padding: 2rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(70, 130, 180, 0.1);
+    }
+    
+    .plan-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--frost-blue);
+      margin: 0;
+    }
+    
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 1rem 0 0.5rem;
+    }
+    
+    .plan-interval {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .plan-features {
+      padding: 2rem;
+      flex: 1;
+    }
+    
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .feature-list li {
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(70, 130, 180, 0.1);
+      display: flex;
+      align-items: center;
+    }
+    
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .feature-icon {
+      margin-right: 0.5rem;
+      color: var(--frost-blue);
+    }
+    
+    .plan-footer {
+      padding: 2rem;
+      text-align: center;
+      background: #f8f9fa;
+      border-top: 1px solid rgba(70, 130, 180, 0.1);
+    }
+    
+    .current-plan {
+      background: var(--accent-yellow);
+      color: var(--polar-night);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 500;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    
+    .btn-primary {
+      background: var(--icy-turquoise);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(126, 200, 216, 0.3);
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn-primary:hover {
+      background: var(--frost-blue);
+      transform: translateY(-2px);
+    }
+    
+    .btn-disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .save-badge {
+      background: var(--accent-orange);
+      color: white;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 12px;
+      position: absolute;
+      top: -10px;
+      right: -10px;
+    }
+    
+    .error-message {
+      background: #ffe0e0;
+      border-left: 4px solid #ff5252;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 4px;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-overlay.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--frost-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-brand">
+      <a href="/">❄️ Snowwords</a>
+    </div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/profile">Profile</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="container">
+      <h1>Upgrade to Snowwords Premium ❄️</h1>
+      <p>Unlock unlimited learning potential with premium features designed to accelerate your English vocabulary growth.</p>
+    </div>
+  </div>
+
+  <!-- Plans Section -->
+  <div class="container">
+    <h2>Choose Your Plan</h2>
+    
+    <!-- Error message placeholder -->
+    <div id="error-container" style="display: none;">
+      <div class="error-message" id="error-message"></div>
+    </div>
+
+    <div class="plans-container">
+      <!-- Free Plan -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <h3 class="plan-name">Free</h3>
+          <div class="plan-price">$0</div>
+          <div class="plan-interval">forever</div>
+        </div>
+        <div class="plan-features">
+          <ul class="feature-list">
+            <li><span class="feature-icon">✓</span> Basic AI conversation (20 messages/day)</li>
+            <li><span class="feature-icon">✓</span> 2 vocabulary tests per day</li>
+            <li><span class="feature-icon">✓</span> Access to basic games</li>
+            <li><span class="feature-icon">✕</span> Advanced games & activities</li>
+          </ul>
+        </div>
+        <div class="plan-footer">
+          <div class="current-plan" id="free-current" style="display: none;">Your Current Plan</div>
+          <button class="btn-primary" disabled id="free-button" style="display: none;">Free Plan</button>
+        </div>
+      </div>
+      
+      <!-- Monthly Plan -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <h3 class="plan-name">Premium Monthly</h3>
+          <div class="plan-price">$4.99</div>
+          <div class="plan-interval">per month</div>
+        </div>
+        <div class="plan-features">
+          <ul class="feature-list">
+            <li><span class="feature-icon">✓</span> <strong>Unlimited</strong>&nbsp; AI conversation</li>
+            <li><span class="feature-icon">✓</span> <strong>Unlimited</strong>&nbsp; vocabulary tests</li>
+            <li><span class="feature-icon">✓</span> Access to &nbsp;<strong>all</strong>&nbsp; games & activities</li>
+          </ul>
+        </div>
+        <div class="plan-footer">
+          <div class="current-plan" id="monthly-current" style="display: none;">Your Current Plan</div>
+          <button class="btn-primary select-plan" data-plan-id="2" id="monthly-button">
+            Select Plan
+          </button>
+        </div>
+      </div>
+      
+      <!-- Yearly Plan -->
+      <div class="plan-card" style="position: relative;">
+        <div class="plan-header">
+          <h3 class="plan-name">Premium Yearly</h3>
+          <div class="plan-price">$49.99</div>
+          <div class="plan-interval">per year ($4.16/month)</div>
+        </div>
+        <div class="plan-features">
+          <ul class="feature-list">
+            <li><span class="feature-icon">✓</span> <strong>Unlimited</strong>&nbsp; AI conversation</li>
+            <li><span class="feature-icon">✓</span> <strong>Unlimited</strong>&nbsp; vocabulary tests</li>
+            <li><span class="feature-icon">✓</span> Access to &nbsp;<strong>all</strong>&nbsp; games & activities</li>
+            <li><span class="feature-icon">✓</span> <strong>2 Months Free</strong></li>
+          </ul>
+        </div>
+        <div class="plan-footer">
+          <div class="current-plan" id="yearly-current" style="display: none;">Your Current Plan</div>
+          <button class="btn-primary select-plan" data-plan-id="3" id="yearly-button">
+            Select Plan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+<!-- Stripe JS - Load from CDN -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+  // Mock data for demonstration - in real implementation, this would come from server
+  const mockUser = {
+    subscriptionStatus: 'free' // Change to 'premium' to test premium state
+  };
+  
+  const mockSubscription = null; // Set to { billing_interval: 'monthly' } or { billing_interval: 'yearly' } to test
+  
+  const mockStripeKey = 'pk_test_mock_key'; // Replace with actual key from server
+  
+  // Initialize page state based on user subscription
+  function initializePage() {
+    if (mockUser.subscriptionStatus !== 'premium') {
+      // User is on free plan
+      document.getElementById('free-current').style.display = 'block';
+    } else {
+      // User is premium - show appropriate current plan
+      document.getElementById('free-button').style.display = 'block';
+      
+      if (mockSubscription && mockSubscription.billing_interval === 'monthly') {
+        document.getElementById('monthly-current').style.display = 'block';
+        document.getElementById('monthly-button').style.display = 'none';
+      } else if (mockSubscription && mockSubscription.billing_interval === 'yearly') {
+        document.getElementById('yearly-current').style.display = 'block';
+        document.getElementById('yearly-button').style.display = 'none';
+      } else {
+        // Premium but no specific plan detected - show all buttons
+        document.getElementById('monthly-button').style.display = 'block';
+        document.getElementById('yearly-button').style.display = 'block';
+      }
+    }
+  }
+
+  // Function to get CSRF token
+  async function getCSRFToken() {
+    try {
+      const response = await fetch('/api/csrf-token', {
+        method: 'GET',
+        credentials: 'same-origin'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get CSRF token');
+      }
+      
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error('Error getting CSRF token:', error);
+      throw error;
+    }
+  }
+
+  // Function to show error message
+  function showError(message) {
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+    
+    // Scroll to error message
+    errorContainer.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Function to hide error message
+  function hideError() {
+    document.getElementById('error-container').style.display = 'none';
+  }
+
+  // Check if Stripe loaded successfully
+  if (typeof Stripe === 'undefined') {
+    console.error('Stripe failed to load');
+    showError('Payment system is currently unavailable. Please try again later.');
+  } else {
+    console.log('Stripe loaded successfully');
+    
+    // Initialize Stripe with error handling
+    let stripe;
+    try {
+      stripe = Stripe(mockStripeKey); // In real app, use server-provided key
+      console.log('Stripe initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Stripe:', error);
+      showError('Payment system initialization failed. Please check your connection and try again.');
+    }
+    
+    // Get elements
+    const selectPlanButtons = document.querySelectorAll('.select-plan');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    // Add event listeners to plan buttons
+    selectPlanButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        if (!stripe) {
+          showError('Payment system is not available. Please refresh the page and try again.');
+          return;
+        }
+        
+        // Hide any previous errors
+        hideError();
+        
+        // Show loading overlay
+        loadingOverlay.classList.add('visible');
+        button.disabled = true;
+        
+        try {
+          const planId = button.getAttribute('data-plan-id');
+          console.log(`Selected plan: ${planId}`);
+          
+          // Get CSRF token first
+          const csrfToken = await getCSRFToken();
+          console.log('CSRF token obtained');
+          
+          // Create checkout session with CSRF token
+          const response = await fetch('/subscription/checkout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken // Include CSRF token in header
+            },
+            credentials: 'same-origin', // Important for CSRF protection
+            body: JSON.stringify({ 
+              planId: planId,
+              _csrf: csrfToken // Also include in body as fallback
+            })
+          });
+          
+          if (!response.ok) {
+            if (response.status === 403) {
+              throw new Error('Security error occurred. Please refresh the page and try again.');
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.success && data.url) {
+            // Redirect to Stripe checkout
+            console.log(`Redirecting to: ${data.url}`);
+            window.location.href = data.url;
+          } else {
+            console.error('Error response:', data);
+            showError('Error: ' + (data.error || 'Failed to create checkout session'));
+            loadingOverlay.classList.remove('visible');
+            button.disabled = false;
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          if (error.message.includes('Security error') || error.message.includes('CSRF')) {
+            showError('Security error occurred. Please refresh the page and try again.');
+          } else {
+            showError('Network error occurred. Please check your connection and try again.');
+          }
+          loadingOverlay.classList.remove('visible');
+          button.disabled = false;
+        }
+      });
+    });
+    
+  }
+
+  // Initialize the page when DOM loads
+  document.addEventListener('DOMContentLoaded', initializePage);
+</script>
+
+<footer>
+  <p>&copy; <%= new Date().getFullYear() %> Snowwords. All Rights Reserved.</p>
+  <nav aria-label="Footer Navigation">
+    <a href="/privacy-policy">Privacy Policy</a> | 
+    <a href="/feedback">Share Feedback</a>
+  </nav>
+</footer>
+</body>
+</html>

@@ -1,0 +1,425 @@
+/* content.css - Chat.ejs style vocabulary popup for Chrome extension */
+
+/* Reset for extension elements */
+.snowwords-modal * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Modal backdrop - solid, not transparent */
+.snowwords-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647 !important;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.3s ease;
+}
+
+.snowwords-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Modal content - exactly like chat.ejs */
+.snowwords-modal-content {
+  background: #ffffff !important;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  transform: scale(1);
+  transition: transform 0.3s ease;
+  border: none;
+}
+
+.snowwords-modal.hidden .snowwords-modal-content {
+  transform: scale(0.9);
+}
+
+/* Header - matching chat.ejs header style */
+.snowwords-modal-header {
+  background: linear-gradient(135deg, #4682B4, #7EC8D8);
+  color: white;
+  padding: 20px 24px;
+  position: relative;
+  text-align: center;
+}
+
+.snowwords-modal-header h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.snowwords-close-btn {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.snowwords-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Modal body - clean white background */
+.snowwords-modal-body {
+  padding: 32px 24px;
+  background: #ffffff;
+}
+
+/* Word section styling */
+.snowwords-word-section {
+  margin-bottom: 24px;
+}
+
+.snowwords-word-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2B3A4A;
+  margin-bottom: 8px;
+}
+
+#snowwords-word-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2B3A4A;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+#snowwords-word-input:focus {
+  border-color: #7EC8D8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 216, 0.1);
+}
+
+/* Definition section */
+.snowwords-definition-section {
+  margin-bottom: 24px;
+}
+
+.snowwords-definition-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2B3A4A;
+  margin-bottom: 8px;
+}
+
+#snowwords-definition {
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2B3A4A;
+  background: #ffffff;
+  resize: vertical;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+#snowwords-definition:focus {
+  border-color: #7EC8D8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 216, 0.1);
+}
+
+/* Loading state */
+.snowwords-loading {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  color: #6c757d;
+  font-size: 15px;
+}
+
+.snowwords-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e1e8ed;
+  border-top: 3px solid #7EC8D8;
+  border-radius: 50%;
+  animation: snowwords-spin 1s linear infinite;
+  margin-right: 12px;
+}
+
+@keyframes snowwords-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Difficulty section */
+.snowwords-difficulty-section {
+  margin-bottom: 24px;
+}
+
+.snowwords-difficulty-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2B3A4A;
+  margin-bottom: 8px;
+}
+
+#snowwords-difficulty {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #2B3A4A;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+#snowwords-difficulty:focus {
+  border-color: #7EC8D8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 216, 0.1);
+}
+
+/* Modal footer */
+.snowwords-modal-footer {
+  padding: 24px;
+  background: #f8f9fa;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  border-top: 1px solid #e1e8ed;
+}
+
+/* Buttons - matching chat.ejs style */
+.snowwords-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.snowwords-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.snowwords-btn-secondary {
+  background: #ffffff;
+  color: #6c757d;
+  border: 2px solid #e1e8ed;
+}
+
+.snowwords-btn-secondary:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #d1d9e0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.snowwords-btn-primary {
+  background: linear-gradient(135deg, #4682B4, #7EC8D8);
+  color: white;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(70, 130, 180, 0.3);
+}
+
+.snowwords-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(70, 130, 180, 0.4);
+}
+
+.snowwords-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(70, 130, 180, 0.3);
+}
+
+/* Status message */
+.snowwords-status {
+  display: none;
+  padding: 12px 16px;
+  margin-top: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.snowwords-status.success {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.snowwords-status.error {
+  background: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+}
+
+.snowwords-status.warning {
+  background: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffcc02;
+}
+
+/* Auto-add success state */
+.snowwords-auto-add-success {
+  padding: 20px 24px;
+  text-align: center;
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.snowwords-auto-add-success h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #2e7d32;
+}
+
+.snowwords-auto-add-success p {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.snowwords-word-display {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1b5e20;
+  margin: 12px 0;
+}
+
+.snowwords-definition-display {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2e7d32;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+/* Quick close button for success state */
+.snowwords-quick-close {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.snowwords-quick-close:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .snowwords-modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .snowwords-modal-header {
+    padding: 16px 20px;
+  }
+  
+  .snowwords-modal-header h3 {
+    font-size: 20px;
+  }
+  
+  .snowwords-modal-body {
+    padding: 24px 20px;
+  }
+  
+  .snowwords-modal-footer {
+    padding: 20px;
+    flex-direction: column;
+  }
+  
+  .snowwords-btn {
+    width: 100%;
+  }
+}
+
+/* Override any website styles */
+.snowwords-modal,
+.snowwords-modal * {
+  all: unset;
+}
+
+.snowwords-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2147483647 !important;
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* Ensure text is always visible */
+.snowwords-modal-content,
+.snowwords-modal-content * {
+  color: inherit !important;
+  text-shadow: none !important;
+}

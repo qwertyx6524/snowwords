@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= user.username %>'s Profile - Snowwords</title>
+  <style>
+    :root {
+      --icy-turquoise: #7EC8D8;
+      --frost-blue: #4682B4;
+      --snow-white: #F8F9FA;
+      --polar-night: #2B3A4A;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--polar-night);
+      background: #f0f4f7; /* Darker background for better contrast */
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container { 
+      width: 90%; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 2rem;
+      flex: 1;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 5%;
+      background: var(--polar-night);
+      color: white;
+      border-bottom: 1px solid rgba(126, 200, 216, 0.2);
+    }
+    .navbar a { 
+      color: white; 
+      text-decoration: none; 
+      margin-left: 2rem;
+      transition: opacity 0.3s ease;
+    }
+    .navbar a:hover { opacity: 0.8; }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    .avatar-container { 
+      position: relative;
+      flex-shrink: 0;
+    }
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--icy-turquoise);
+      background: var(--snow-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: var(--frost-blue);
+      color: white;
+      padding: 0.3rem 0.6rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .avatar-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(43, 58, 74, 0.95);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+
+    .avatar-modal-content {
+      background: linear-gradient(145deg, var(--snow-white) 0%, #f0f4f7 100%);
+      padding: 2.5rem;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      position: relative;
+      border: 1px solid rgba(126, 200, 216, 0.3);
+    }
+
+    .avatar-modal-content h3 {
+      margin: 0 0 2rem 0;
+      color: var(--polar-night);
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .avatar-preview {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 1rem auto;
+      border: 4px solid var(--icy-turquoise);
+      box-shadow: 0 4px 15px rgba(70, 130, 180, 0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .avatar-preview:hover {
+      transform: scale(1.03);
+    }
+
+    .avatar-upload-btn {
+      background: var(--frost-blue);
+      color: white;
+      padding: 0.8rem 1.8rem;
+      border-radius: 30px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: none;
+      margin: 1rem 0;
+    }
+
+    .avatar-modal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    .btn-save-avatar {
+      background: var(--frost-blue);
+      color: white;
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-save-avatar:hover {
+      background: var(--icy-turquoise);
+      transform: translateY(-2px);
+    }
+
+    .btn-cancel-avatar {
+      background: transparent;
+      color: var(--frost-blue);
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      border: 2px solid var(--frost-blue);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel-avatar:hover {
+      background: rgba(70, 130, 180, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .avatar-loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--icy-turquoise);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .user-info {
+      flex: 1;
+    }
+    .user-name-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .user-name {
+      font-size: 2rem;
+      margin: 0;
+      color: var(--polar-night);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .user-level {
+      font-size: 1.2rem;
+      color: var(--frost-blue);
+      margin: 0;
+    }
+
+    .snowball-progress {
+      background: var(--snow-white);
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid var(--icy-turquoise);
+    }
+
+    .snowball-inner {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--frost-blue);
+    }
+
+    .stats-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+      gap: 2rem; 
+      margin: 2rem 0;
+    }
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid rgba(126, 200, 216, 0.3);
+      box-shadow: 0 4px 20px rgba(70, 130, 180, 0.1);
+      position: relative;
+    }
+    .stat-card h3 {
+      margin-top: 0;
+      color: var(--frost-blue);
+    }
+
+    .vocab-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin: 1rem 0;
+    }
+    .vocab-word {
+      background: rgba(126, 200, 216, 0.1);
+      color: var(--frost-blue);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid var(--icy-turquoise);
+      font-size: 0.9rem;
+    }
+
+    .vocab-actions {
+      margin-top: 1.5rem;
+      text-align: right;
+    }
+
+    .btn-vocab {
+      background: var(--frost-blue);
+      color: white;
+      padding: 0.6rem 1.5rem;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-vocab:hover {
+      background: var(--icy-turquoise);
+      transform: translateY(-2px);
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+    .achievement-badge {
+      text-align: center;
+      padding: 1rem;
+      background: var(--snow-white);
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(126, 200, 216, 0.2);
+      box-shadow: 0 4px 15px rgba(70, 130, 180, 0.08);
+    }
+    .achievement-badge:hover {
+      transform: translateY(-5px);
+    }
+
+    .btn-settings {
+      background: none;
+      color: var(--frost-blue);
+      border: 2px solid var(--frost-blue);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .btn-settings:hover {
+      background: var(--frost-blue);
+      color: white;
+    }
+
+    .settings-container {
+      display: none;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+      border: 1px solid rgba(126, 200, 216, 0.3);
+    }
+    .settings-container.visible {
+      display: block;
+    }
+
+    .settings-form {
+      display: grid;
+      gap: 1.5rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .form-group label {
+      font-weight: 500;
+      color: var(--frost-blue);
+    }
+    
+    .form-control {
+      padding: 0.8rem;
+      border: 1px solid var(--icy-turquoise);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--frost-blue);
+    }
+    
+    .select-level {
+      appearance: none;
+      background: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234682B4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 0.8rem center/1.2rem;
+    }
+    
+    .btn-save {
+      background: var(--frost-blue);
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+      background: var(--icy-turquoise);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background: var(--polar-night);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: auto;
+      border-top: 1px solid rgba(126, 200, 216, 0.2);
+    }
+
+    footer a {
+      color: var(--snow-white);
+      text-decoration: none;
+      transition: color 0.2s;
+      margin: 0 0.5rem;
+    }
+    
+    footer a:hover {
+      color: var(--icy-turquoise);
+      text-decoration: underline;
+    }
+
+    .feedback-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(43, 58, 74, 0.95);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .feedback-modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      border: 1px solid rgba(126, 200, 216, 0.3);
+    }
+    
+    .feedback-modal-header {
+      background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+      color: white;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .feedback-modal-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .emoji {
+      font-size: 1.5rem;
+      margin-right: 8px;
+    }
+    
+    .feedback-modal-body {
+      padding: 1.5rem;
+    }
+    
+    .feedback-modal textarea {
+      width: 100%;
+      border: 2px solid rgba(70, 130, 180, 0.2);
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      min-height: 120px;
+      transition: all 0.3s ease;
+      margin-bottom: 1.5rem;
+      box-sizing: border-box;
+    }
+    
+    .feedback-modal textarea:focus {
+      border-color: var(--icy-turquoise);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(126, 200, 216, 0.3);
+    }
+    
+    .feedback-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .btn-submit-feedback {
+      background: var(--icy-turquoise);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem 0;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-submit-feedback:hover {
+      background: var(--frost-blue);
+      transform: translateY(-2px);
+    }
+    
+    .btn-later {
+      color: var(--polar-night);
+      background: transparent;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 0.8rem 0;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-later:hover {
+      background: #f8f9fa;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      padding: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .close-modal:hover {
+      opacity: 0.7;
+    }
+
+    .subscription-section {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+      border: 1px solid rgba(126, 200, 216, 0.3);
+    }
+
+    .premium-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .premium-badge {
+      background: var(--accent-yellow);
+      color: var(--polar-night);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .free-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .free-limits {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .free-limits li {
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-upgrade {
+      background-color: #FF6B6B;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-upgrade:hover {
+      background-color: #FF5252;
+    }
+
+    .btn-secondary {
+      background-color: #4682B4;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: #3A6D99;
+    }
+
+    .premium-features {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 12px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .premium-features h4 {
+      color: var(--frost-blue);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .feature-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--polar-night);
+      transition: all 0.3s ease;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-color: var(--icy-turquoise);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .feature-card h5 {
+      margin: 0 0 0.5rem 0;
+      color: var(--frost-blue);
+      font-size: 1rem;
+    }
+    
+    .feature-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+      .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .snowball-progress {
+        margin-top: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .navbar {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1rem;
+      }
+      
+      .nav-links {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+      
+      .nav-links a {
+        margin: 0;
+      }
+      
+      /* Mobile form improvements */
+      .settings-container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+      
+      .avatar-modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+      
+      .avatar-preview {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .avatar-modal-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      
+      .btn-save-avatar,
+      .btn-cancel-avatar {
+        width: 100%;
+      }
+    }
+    
+    /* Form validation styles */
+    .form-control.error {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .field-error {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Loading states */
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .btn:disabled:hover {
+      background-color: #ccc;
+      transform: none !important;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a href="/" aria-label="Snowwords Home">❄️ Snowwords</a>
+      </div>
+      <div class="nav-links" role="navigation">
+          <a href="/profile">Profile</a>
+          <a href="/vocab">Vocab</a>
+          <a href="/activities" class="active">Activities</a>
+          <a href="/logout">Logout</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <% if (error) { %>
+      <div class="alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="profile-header">
+      <div class="avatar-container">
+        <div class="avatar">
+          <% if (user.avatarUrl) { %>
+            <img src="<%= user.avatarUrl %>" alt="Profile Avatar">
+          <% } else { %>
+            <span>⛄️</span>
+          <% } %>
+        </div>
+        <div class="avatar-edit" onclick="openAvatarEditor()">Edit</div>
+      </div>
+
+      <div class="user-info">
+        <div class="user-name-container">
+          <h1 class="user-name">
+            <%= user.username %>
+            <span class="user-level">❄️ <%= user.englishLevel || 'Beginner' %></span>
+          </h1>
+          <button class="btn-settings" onclick="toggleSettings()">
+            ⚙️ Settings
+          </button>
+        </div>
+        <p class="user-email"><%= user.email %></p>
+      </div>
+
+      <div class="snowball-progress">
+        <div class="snowball-inner">
+          <div class="stat-number"><%= user.progress %></div>
+          <small>/100 words</small>
+        </div>
+      </div>
+    </div>
+
+    <div id="avatarModal" class="avatar-modal">
+      <div class="avatar-modal-content">
+        <div class="avatar-loading" id="avatarLoading">
+          <div class="loading-spinner"></div>
+        </div>
+        <h3>Update Your Profile Picture</h3>
+        <div class="avatar-preview-container">
+          <img id="avatarPreview" class="avatar-preview" 
+               src="<%= user.avatarUrl || '/images/default-avatar.png' %>" 
+               alt="Avatar Preview">
+        </div>
+        <form id="avatarForm" action="/update-avatar" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="file" id="avatarInput" name="avatar" accept="image/*" hidden>
+          <label for="avatarInput" class="avatar-upload-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19v2H1v-2M12 3v16M5 10l7-7 7 7"/>
+            </svg>
+            Choose Photo
+          </label>
+          <div class="avatar-modal-buttons">
+            <button type="submit" class="btn-save-avatar">Save Changes</button>
+            <button type="button" class="btn-cancel-avatar" onclick="closeAvatarEditor()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="feedback-modal">
+      <div class="feedback-modal-content">
+        <div class="feedback-modal-header">
+          <h3>
+            <span class="emoji">❄️</span> We'd Love Your Feedback!
+          </h3>
+          <button class="close-modal" onclick="closeFeedbackModal()">&times;</button>
+        </div>
+        <div class="feedback-modal-body">
+          <p>Congratulations on adding <%= user.vocabCount %> words to your collection! We'd love to hear about your experience with SnowWords so far.</p>
+          
+          <form action="/feedback" method="POST" id="modalFeedbackForm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="name" value="<%= user.username %>">
+            <input type="hidden" name="email" value="<%= user.email %>">
+            <input type="hidden" name="subject" value="Milestone Feedback">
+            
+            <textarea id="feedbackMessage" name="message" placeholder="What do you like about SnowWords? How could we improve?"></textarea>
+            
+            <div class="feedback-buttons">
+              <button type="button" class="btn-later" onclick="closeFeedbackModal()">Maybe Later</button>
+              <button type="submit" class="btn-submit-feedback">Submit Feedback</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-container" id="settingsContainer">
+      <form class="settings-form" method="POST" action="/update-profile">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" class="form-control" id="username" name="username" 
+                 value="<%= user.username %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" name="email" 
+                 value="<%= user.email %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="englishLevel">Learning Level</label>
+          <select class="form-control select-level" id="englishLevel" name="englishLevel">
+            <option value="Beginner" <%= user.englishLevel === 'Beginner' ? 'selected' : '' %>>Beginner</option>
+            <option value="Intermediate" <%= user.englishLevel === 'Intermediate' ? 'selected' : '' %>>Intermediate</option>
+            <option value="Advanced" <%= user.englishLevel === 'Advanced' ? 'selected' : '' %>>Advanced</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="learningGoals">Learning Goals (comma-separated)</label>
+          <textarea class="form-control" id="learningGoals" name="learningGoals" 
+                    rows="3"><%= user.learningGoals %></textarea>
+        </div>
+
+        <button type="submit" class="btn-save">Save Changes</button>
+      </form>
+    </div>
+
+    <div class="card subscription-section">
+      <div class="card-header">
+        <h3>Subscription</h3>
+      </div>
+      <div class="card-body">
+        <% if (user.subscriptionStatus === 'premium') { %>
+          <div class="premium-status">
+            <div class="premium-badge">PREMIUM</div>
+            <p>You're enjoying all premium features of Snowwords!</p>
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+              <h4 style="color: #4682B4; margin-bottom: 1rem;">🎯 Premium Features</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <a href="/premium/crossword" style="background: white; padding: 1rem; border-radius: 8px; text-decoration: none; color: #2B3A4A; border: 1px solid #dee2e6;">
+                  <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🧩</div>
+                  <h5 style="margin: 0 0 0.5rem 0; color: #4682B4;">Crossword Puzzle</h5>
+                  <p style="margin: 0; font-size: 0.9rem; color: #666;">Challenge yourself with vocabulary puzzles</p>
+                </a>
+                <a href="/api/premium/vocab/export" style="background: white; padding: 1rem; border-radius: 8px; text-decoration: none; color: #2B3A4A; border: 1px solid #dee2e6;">
+                  <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📥</div>
+                  <h5 style="margin: 0 0 0.5rem 0; color: #4682B4;">Export Vocabulary</h5>
+                  <p style="margin: 0; font-size: 0.9rem; color: #666;">Download your vocabulary as CSV</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="free-status">
+            <p>You're currently on the <strong>Free Plan</strong> with the following limits:</p>
+            <ul class="free-limits">
+              <li>20 AI messages per day</li>
+              <li>2 tests per day</li>
+              <li>No access to premium games and activities</li>
+            </ul>
+            <p>Upgrade to Premium to unlock unlimited learning potential!</p>
+            <a href="/subscription/plans" class="btn btn-primary btn-upgrade">Upgrade to Premium</a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>❄️ Vocabulary Bank</h3>
+        <div class="vocab-cloud">
+          <% user.vocabulary.slice(0, 15).forEach(word => { %>
+            <div class="vocab-word"><%= word.word %></div>
+          <% }); %>
+        </div>
+        <div class="vocab-actions">
+          <a href="/vocab" class="btn-vocab">
+            View All Words (<%= user.vocabCount %>)
+          </a>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>⛄ Learning Stats</h3>
+        <p>Daily Streak: <%= user.streak %> days 🔥</p>
+        <p>Total Learning Hours: <%= user.totalHours %> ⏳</p>
+        <p>Accuracy Rate: <%= user.accuracy %>% 🎯</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>🌨️ Current Goals</h3>
+        <% if (user.learningGoals && user.learningGoals.trim().length > 0) { %>
+          <ul>
+            <% user.learningGoals.split(',').forEach(goal => { %>
+              <% if (goal.trim()) { %>
+                <li><%= goal.trim() %></li>
+              <% } %>
+            <% }); %>
+          </ul>
+        <% } else { %>
+          <p>No goals set yet</p>
+        <% } %>
+      </div>
+
+      <div class="stat-card">
+        <h3>🏆 Achievements</h3>
+        <div class="achievements-grid">
+          <% user.achievements.forEach(achievement => { %>
+            <div class="achievement-badge">
+              <div style="font-size: 2rem;"><%= achievement.emoji %></div>
+              <p><%= achievement.name %></p>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; <%= new Date().getFullYear() %> Snowwords. All Rights Reserved.</p>
+    <nav aria-label="Footer Navigation">
+      <a href="/privacy-policy">Privacy Policy</a> | 
+      <a href="/terms">Terms of Service</a> | 
+      <a href="/feedback">Share Feedback</a> | 
+      <a href="/contact">Contact Us</a>
+    </nav>
+  </footer>
+
+  <script>
+    function toggleSettings() {
+      const settings = document.getElementById('settingsContainer');
+      settings.classList.toggle('visible');
+    }
+
+    function openAvatarEditor() {
+      document.getElementById('avatarModal').style.display = 'flex';
+    }
+
+    function closeAvatarEditor() {
+      document.getElementById('avatarModal').style.display = 'none';
+    }
+
+    function openFeedbackModal() {
+      document.getElementById('feedbackModal').style.display = 'flex';
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').style.display = 'none';
+      // Store in localStorage that feedback was shown/closed
+      localStorage.setItem('feedbackShown', new Date().toISOString());
+    }
+
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('avatarPreview').src = event.target.result;
+      }
+      if (e.target.files[0]) {
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    document.getElementById('avatarForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loading = document.getElementById('avatarLoading');
+      const formData = new FormData(e.target);
+      
+      try {
+        loading.style.display = 'flex';
+        const response = await fetch('/update-avatar', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          setTimeout(() => {
+            loading.style.display = 'none';
+            location.reload();
+          }, 1500);
+        } else {
+          loading.style.display = 'none';
+          alert('Error updating avatar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        loading.style.display = 'none';
+        alert('Error updating avatar');
+      }
+    });
+
+    // Handle feedback form submission
+    document.getElementById('modalFeedbackForm').addEventListener('submit', function(e) {
+      // Standard form submission, no need to prevent default
+      closeFeedbackModal();
+    });
+
+    // Profile form validation
+    document.querySelector('.settings-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const learningGoals = document.getElementById('learningGoals').value.trim();
+      
+      // Clear previous errors
+      clearValidationErrors();
+      
+      let isValid = true;
+      
+      // Username validation
+      if (!username) {
+        showFieldError('username', 'Username is required');
+        isValid = false;
+      } else if (username.length < 2) {
+        showFieldError('username', 'Username must be at least 2 characters');
+        isValid = false;
+      } else if (username.length > 30) {
+        showFieldError('username', 'Username must be less than 30 characters');
+        isValid = false;
+      }
+      
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        showFieldError('email', 'Email is required');
+        isValid = false;
+      } else if (!emailRegex.test(email)) {
+        showFieldError('email', 'Please enter a valid email address');
+        isValid = false;
+      }
+      
+      // Learning goals validation
+      if (learningGoals.length > 500) {
+        showFieldError('learningGoals', 'Learning goals must be less than 500 characters');
+        isValid = false;
+      }
+      
+      if (isValid) {
+        // Show loading state
+        const submitBtn = document.querySelector('.btn-save');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+        
+        // Submit the form
+        this.submit();
+      }
+    });
+    
+    function showFieldError(fieldId, message) {
+      const field = document.getElementById(fieldId);
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'field-error';
+      errorDiv.textContent = message;
+      errorDiv.style.cssText = `
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+        padding: 0.3rem;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 0.3rem;
+      `;
+      
+      field.classList.add('error');
+      field.parentNode.appendChild(errorDiv);
+    }
+    
+    function clearValidationErrors() {
+      // Remove all error messages
+      document.querySelectorAll('.field-error').forEach(error => error.remove());
+      // Remove error classes from fields
+      document.querySelectorAll('.form-control.error').forEach(field => {
+        field.classList.remove('error');
+      });
+    }
+
+    // Check if we should show the feedback popup
+    document.addEventListener('DOMContentLoaded', function() {
+      const shouldShowFeedback = () => {
+        const userVocabCount = parseInt('<%= user.vocabCount || 0 %>');
+        const feedbackShown = localStorage.getItem('feedbackShown');
+        
+        // Show feedback if:
+        // 1. User has at least 10 vocabulary words
+        // 2. Feedback hasn't been shown before or was shown more than 30 days ago
+        if (userVocabCount >= 10) {
+          if (!feedbackShown) {
+            return true;
+          } else {
+            const lastShown = new Date(feedbackShown);
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            return lastShown < thirtyDaysAgo;
+          }
+        }
+        
+        return false;
+      };
+      
+      // Show feedback modal after a delay if conditions are met
+      if (shouldShowFeedback()) {
+        setTimeout(() => {
+          openFeedbackModal();
+        }, 1500); // Show after 1.5 seconds to give page time to load
+      }
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('avatar-modal')) {
+        closeAvatarEditor();
+      }
+      
+      if (e.target.classList.contains('feedback-modal')) {
+        closeFeedbackModal();
+      }
+    });
+  </script>
+</body>
+</html>

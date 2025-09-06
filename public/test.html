@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snowwords - Vocabulary Challenge</title>
+  <style>
+    :root {
+      --icy-turquoise: #7EC8D8;
+      --frost-blue: #4682B4;
+      --snow-white: #F8F9FA;
+      --polar-night: #2B3A4A;
+      --success-green: #4CAF50;
+      --error-red: #f44336;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--snow-white);
+      color: var(--polar-night);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: var(--polar-night);
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-brand a {
+      color: var(--snow-white);
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--snow-white);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--icy-turquoise);
+    }
+
+    #container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--frost-blue);
+      margin-bottom: 2rem;
+      font-size: 2.2rem;
+    }
+
+    .question-box {
+      background: var(--snow-white);
+      border: 2px solid var(--icy-turquoise);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(70, 130, 180, 0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .question-box:hover {
+      transform: translateY(-2px);
+    }
+
+    .question-box h2 {
+      color: var(--frost-blue);
+      margin: 0 0 1.5rem 0;
+      font-size: 1.5rem;
+    }
+
+    #choices {
+      display: grid;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .choice {
+      background: rgba(126, 200, 216, 0.1);
+      border: 2px solid var(--icy-turquoise);
+      border-radius: 0.8rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative; /* Added for positioning the input/label */
+    }
+
+    .choice:hover {
+      background: rgba(126, 200, 216, 0.5);
+      transform: translateX(5px);
+    }
+
+    .choice input[type="radio"] {
+      display: none;
+    }
+
+    .choice label {
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    .choice-text {
+      pointer-events: none; /* Ensures clicks pass through to the label */
+    }
+
+    .choice:has(input[type="radio"]:checked) {
+      background-color: rgba(126, 200, 216, 0.4);
+    }
+
+    #resultText {
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 1rem;
+      border-radius: 0.8rem;
+      margin: 2rem 0;
+    }
+
+    .correct { background: rgba(76, 175, 80, 0.1); color: var(--success-green); }
+    .incorrect { background: rgba(244, 67, 54, 0.1); color: var(--error-red); }
+
+    .btn {
+      background: var(--icy-turquoise);
+      color: var(--snow-white);
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 15px rgba(126, 200, 216, 0.3);
+    }
+
+    .btn:hover {
+      background: var(--frost-blue);
+      transform: translateY(-2px);
+    }
+
+    .nav-links-bottom {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .nav-links-bottom a {
+      color: var(--frost-blue);
+      text-decoration: none;
+      margin: 0 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.8rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links-bottom a:hover {
+      background: rgba(126, 200, 216, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      #container {
+        padding: 0 1rem;
+      }
+
+      .question-box {
+        padding: 1.5rem;
+      }
+
+      .choice {
+        padding: 1rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/styles/snowwords.css" />
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a href="/">❄️ Snowwords</a>
+    </div>
+    <div class="nav-links" role="navigation">
+      <a href="/profile">Profile</a>
+      <a href="/vocab">Vocab</a>
+      <a href="/activities" class="active">Activities</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <div id="container">
+    <h1>❄️ Vocabulary Snow Challenge ❄️</h1>
+    <div id="question-area"></div>
+    <div style="text-align: center;">
+      <button class="btn" id="nextBtn" style="display:none;">Next Snowflake →</button>
+    </div>
+    <p id="resultText"></p>
+    <div class="nav-links-bottom">
+      <a href="/chat">Back to Chat</a>
+      <a href="/vocab">View Snowbank</a>
+    </div>
+  </div>
+
+  <script>
+    // Function to display the result with visual feedback
+    function showResult(isCorrect, correctDef) {
+      const resultText = document.getElementById('resultText');
+      resultText.className = isCorrect ? 'correct' : 'incorrect';
+      resultText.innerHTML = isCorrect 
+        ? '❄️ Correct! Well done!' 
+        : `☃️ Oops! Correct answer: <strong>${correctDef}</strong>`;
+    }
+
+    // Global variables
+    let questions = [];
+    let currentIndex = 0;
+    let answered = false;
+    let correctDef = '';
+    let currentQuestion = {};
+
+    // Load questions from the server
+    async function loadQuestions() {
+      try {
+        const resp = await fetch('/test/data');
+        const data = await resp.json();
+        questions = data.questions || [];
+        currentIndex = 0;
+        showQuestion();
+      } catch (err) {
+        console.error('Error loading test data:', err);
+        document.getElementById('question-area').textContent = 'Failed to load questions.';
+      }
+    }
+
+    // Display a question and its multiple-choice answers
+    function showQuestion() {
+      const questionArea = document.getElementById('question-area');
+      const nextBtn = document.getElementById('nextBtn');
+      const resultText = document.getElementById('resultText');
+      answered = false;
+      resultText.textContent = '';
+      resultText.className = '';
+
+      if (currentIndex >= questions.length || questions.length === 0) {
+        questionArea.innerHTML = '<div class="question-box"><p>⛄ Your snowbank is empty! Collect more words in chat!</p></div>';
+        nextBtn.style.display = 'none';
+        return;
+      }
+
+      const q = questions[currentIndex];
+      currentQuestion = q;           // Save current question for later use
+      correctDef = q.correctDefinition;
+      let choices = [ correctDef, ...q.decoyDefinitions ];
+      shuffleArray(choices);
+
+      let html = `
+        <div class="question-box">
+          <h2>${q.questionWord}</h2>
+          <div>Choose the correct definition:</div>
+          <div id="choices">
+      `;
+      for (let i = 0; i < choices.length; i++) {
+        const c = choices[i];
+        html += `
+          <div class="choice">
+            <input type="radio" name="choice" value="${escapeHTML(c)}" id="choice${i}">
+            <label for="choice${i}"></label>
+            <div class="choice-text">${escapeHTML(c)}</div>
+          </div>
+        `;
+      }
+      html += `</div><button class="btn" id="submitBtn">Submit Answer</button></div>`;
+      questionArea.innerHTML = html;
+      nextBtn.style.display = 'none';
+
+      // Attach the submit handler after the question has been rendered
+      document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+      
+      // Also make the whole choice div clickable by adding event listeners
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.addEventListener('click', function() {
+          const radio = this.querySelector('input[type="radio"]');
+          radio.checked = true;
+        });
+      });
+    }
+
+    // Handler for the submit button click event
+    function handleSubmit() {
+      if (answered) return;
+      const selected = document.querySelector('input[name="choice"]:checked');
+      if (!selected) {
+        alert('Please select an answer!');
+        return;
+      }
+      const selectedValue = selected.value;
+      answered = true;
+      
+      if (selectedValue === correctDef) {
+        showResult(true);
+        markCorrect(currentQuestion.vocabId);
+      } else {
+        showResult(false, correctDef);
+      }
+      
+      document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+
+    // Move on to the next question
+    function nextQuestion() {
+      currentIndex++;
+      showQuestion();
+    }
+
+    // Send a POST request to mark the question as answered correctly
+    function markCorrect(vocabId) {
+      fetch('/test/correct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vocabId })
+      }).catch(err => {
+        console.error('Error marking correct:', err);
+      });
+    }
+
+    // Shuffle an array in place
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    // Escape special HTML characters
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, c => {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return map[c];
+      });
+    }
+
+    // When the page loads, attach the next button event and load the questions
+    window.onload = () => {
+      document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+      loadQuestions();
+    };
+  </script>
+</body>
+</html>

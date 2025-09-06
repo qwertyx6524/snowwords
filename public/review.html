@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Snowwords Flashcards</title>
+    <style>
+      :root {
+        --icy-turquoise: #7EC8D8;
+        --frost-blue: #4682B4;
+        --snow-white: #F8F9FA;
+        --polar-night: #2B3A4A;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: var(--snow-white);
+        color: var(--polar-night);
+        margin: 0;
+        min-height: 100vh;
+      }
+
+      /* Navbar */
+      .navbar {
+        background: var(--polar-night);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-brand a {
+        color: var(--snow-white);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--snow-white);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--icy-turquoise);
+      }
+
+      /* Hero Section */
+      .hero-section {
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .hero-section h1 {
+        font-size: 2.2rem;
+        margin: 0;
+      }
+
+      /* Flashcard Container */
+      #card {
+        width: 90%;
+        max-width: 600px;
+        height: 300px;
+        margin: 2rem auto;
+        perspective: 1000px;
+        cursor: pointer;
+      }
+
+      /* Inner card that flips */
+      .card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+      }
+
+      #card.flipped .card-inner {
+        transform: rotateY(180deg);
+      }
+
+      /* Front and back faces */
+      .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 3px solid var(--icy-turquoise);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--snow-white);
+        font-size: 1.4rem;
+        padding: 2rem;
+        box-shadow: 0 8px 20px rgba(70, 130, 180, 0.15);
+        backface-visibility: hidden;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      .card-back {
+        transform: rotateY(180deg);
+        background: var(--icy-turquoise);
+        color: var(--snow-white);
+      }
+
+      /* Controls */
+      #controls {
+        text-align: center;
+        margin: 2rem 0;
+      }
+
+      .btn {
+        background: var(--icy-turquoise);
+        color: var(--snow-white);
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        margin: 0 1rem;
+        box-shadow: 0 4px 15px rgba(126, 200, 216, 0.3);
+      }
+
+      .btn:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      /* No-words text */
+      #no-words {
+        text-align: center;
+        margin: 4rem 0;
+        font-size: 1.2rem;
+        color: var(--frost-blue);
+      }
+
+      /* Bottom Nav (links back to Vocab or Chat) */
+      .bottom-nav-links {
+        text-align: center;
+        margin: 2rem 0;
+      }
+      .bottom-nav-links a {
+        color: var(--frost-blue);
+        text-decoration: none;
+        margin: 0 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+      .bottom-nav-links a:hover {
+        background: rgba(126, 200, 216, 0.1);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        #card {
+          min-height: 250px;
+          margin: 1rem auto;
+        }
+
+        .btn {
+          display: block;
+          width: 80%;
+          margin: 1rem auto;
+        }
+      }
+    </style>
+
+    <!-- Optionally link external stylesheet if needed -->
+    <link rel="stylesheet" href="/styles/snowwords.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a href="/">❄️ Snowwords</a>
+      </div>
+      <div class="nav-links" role="navigation">
+        <a href="/profile">Profile</a>
+        <a href="/vocab">Vocab</a>
+        <a href="/activities" class="active">Activities</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <h1>Snowball Flashcard Practice ❄️</h1>
+    </div>
+
+    <!-- Flashcard + No Words -->
+    <div id="card" style="display:none;">
+      <div class="card-inner">
+        <div class="card-front" id="card-front"></div>
+        <div class="card-back" id="card-back"></div>
+      </div>
+    </div>
+    <div id="no-words" style="display:none;">
+      Your snowball is empty - collect more words in chat! ⛄️
+    </div>
+
+    <!-- Controls -->
+    <div id="controls" style="display:none;">
+      <button class="btn" id="nextBtn">Next Snowflake →</button>
+      <button class="btn" id="flipBtn">Flip Card 🔄</button>
+    </div>
+
+    <!-- Bottom Nav Links -->
+    <div class="bottom-nav-links">
+      <a href="/vocab">Back to Vocab</a>
+      <a href="/chat">Back to Chat</a>
+    </div>
+
+    <!-- Main Script -->
+    <script>
+      let words = [];               
+      let currentIndex = 0;
+      let showingDefinition = false;
+
+      const card = document.getElementById('card');
+      const cardFront = document.getElementById('card-front');
+      const cardBack = document.getElementById('card-back');
+      const noWords = document.getElementById('no-words');
+      const controls = document.getElementById('controls');
+      const nextBtn = document.getElementById('nextBtn');
+      const flipBtn = document.getElementById('flipBtn');
+
+      async function fetchWords() {
+        try {
+          // Both snippets used /review/data as the endpoint
+          const response = await fetch('/review/data');
+          words = await response.json();
+
+          if (!Array.isArray(words)) {
+            words = [];
+          }
+
+          showCard();
+        } catch (err) {
+          console.error('Failed to fetch words:', err);
+          words = [];
+          showCard();
+        }
+      }
+
+      // Show the correct side of the card
+      function showCard() {
+        if (words.length === 0) {
+          card.style.display = 'none';
+          controls.style.display = 'none';
+          noWords.style.display = 'block';
+          return;
+        }
+        // If we have words, show the card and the buttons
+        card.style.display = 'block';
+        controls.style.display = 'block';
+        noWords.style.display = 'none';
+
+        // Set the text for both sides
+        const currentWord = words[currentIndex];
+        cardFront.textContent = currentWord.word;
+        cardBack.textContent = currentWord.definition;
+        
+        // Reset to front side
+        card.classList.remove('flipped');
+      }
+
+      // Simple flip toggle - same as demo
+      function flipCard() {
+        if (words.length > 0) {
+          card.classList.toggle('flipped');
+        }
+      }
+
+      function nextCard() {
+        if (words.length > 0) {
+          // Reset to front side
+          card.classList.remove('flipped');
+          
+          // Change to next word after brief delay
+          setTimeout(() => {
+            currentIndex = (currentIndex + 1) % words.length;
+            const currentWord = words[currentIndex];
+            cardFront.textContent = currentWord.word;
+            cardBack.textContent = currentWord.definition;
+          }, 100);
+        }
+      }
+
+      // On page load, fetch words and attach event listeners
+      window.onload = () => {
+        fetchWords();
+        card.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', nextCard);
+        flipBtn.addEventListener('click', flipCard);
+      };
+    </script>
+  </body>
+</html>

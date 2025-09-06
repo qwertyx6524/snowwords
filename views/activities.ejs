@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Activities - Snowwords</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Discover fun English learning activities including vocabulary games, challenges, and interactive exercises on Snowwords. Improve your English skills through engaging winter-themed activities." />
+    <meta name="keywords" content="english activities, vocabulary games, language learning games, ESL activities, english practice" />
+    <meta name="author" content="Snowwords" />
+    <link rel="canonical" href="https://snowwords.com/activities" />
+    
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="Activities - Snowwords" />
+    <meta property="og:description" content="Discover fun English learning activities including vocabulary games, challenges, and interactive exercises on Snowwords." />
+    <meta property="og:image" content="https://snowwords.com/images/snowwords-social.jpg" />
+    <meta property="og:url" content="https://snowwords.com/activities" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;700&display=swap" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <style>
+      /* Winter Theme Styles */
+      :root {
+        --icy-turquoise: #7EC8D8;
+        --frost-blue: #4682B4;
+        --snow-white: #F8F9FA;
+        --polar-night: #2B3A4A;
+        --ice-blue-light: #D1E8F0;
+        --soft-snow: #EEF5F9;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: var(--polar-night);
+        background: var(--snow-white);
+        line-height: 1.6;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Navbar */
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        background: var(--polar-night);
+        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+      }
+
+      .navbar-brand a {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--snow-white);
+        text-decoration: none;
+        letter-spacing: 0.5px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--snow-white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        padding: 0.5rem;
+      }
+
+      .nav-links a:hover {
+        color: var(--icy-turquoise);
+      }
+
+      /* Page Header */
+      .page-header {
+        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 3rem 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .page-header p {
+        font-size: 1.2rem;
+        max-width: 700px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Snowflake decorations */
+      .snowflake {
+        position: absolute;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 1.5rem;
+        z-index: 0;
+      }
+
+      .snowflake:nth-child(1) { top: 10%; left: 10%; }
+      .snowflake:nth-child(2) { top: 20%; right: 15%; }
+      .snowflake:nth-child(3) { bottom: 15%; left: 20%; }
+      .snowflake:nth-child(4) { bottom: 25%; right: 10%; }
+
+      /* Activity Categories */
+      .category-tabs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+
+      .category-tab {
+        padding: 0.8rem 1.5rem;
+        background: var(--ice-blue-light);
+        border-radius: 25px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .category-tab:hover {
+        background: var(--icy-turquoise);
+        color: white;
+      }
+
+      .category-tab.active {
+        background: var(--frost-blue);
+        color: white;
+      }
+
+      /* Activity Grid */
+      .activity-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .activity-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(70, 130, 180, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+      }
+
+      .activity-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(70, 130, 180, 0.15);
+      }
+
+      .activity-image {
+        height: 150px;
+        background: var(--ice-blue-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+      }
+
+      .activity-content {
+        padding: 1.5rem;
+      }
+
+      .activity-title {
+        font-size: 1.3rem;
+        color: var(--frost-blue);
+        margin-bottom: 0.5rem;
+      }
+
+      .activity-description {
+        color: var(--polar-night);
+        margin-bottom: 1.5rem;
+      }
+
+      .activity-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+      }
+
+      .activity-level {
+        font-size: 0.9rem;
+        background: var(--soft-snow);
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background: var(--icy-turquoise);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 3px 10px rgba(126, 200, 216, 0.2);
+      }
+
+      .btn-primary:hover {
+        background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      /* Featured Activity Section */
+      .featured-activity {
+        background: var(--soft-snow);
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 3rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+      }
+
+      .featured-content {
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .featured-image {
+        flex: 1;
+        min-width: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 6rem;
+        color: var(--frost-blue);
+      }
+
+      .featured-badge {
+        background: var(--icy-turquoise);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+      }
+
+      /* Premium badge styling */
+      .activity-level.premium {
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+      }
+
+      /* Premium activity card styling */
+      .activity-card.premium {
+        border: 2px solid #FFD700;
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+      }
+
+      .activity-card.premium:hover {
+        box-shadow: 0 8px 30px rgba(255, 215, 0, 0.25);
+      }
+
+      /* Footer */
+      footer {
+        background: var(--polar-night);
+        color: var(--snow-white);
+        text-align: center;
+        padding: 2rem;
+        margin-top: 4rem;
+      }
+
+      footer a {
+        color: var(--icy-turquoise);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .page-header h1 {
+          font-size: 2rem;
+        }
+        
+        .page-header p {
+          font-size: 1rem;
+        }
+        
+        .category-tabs {
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        .category-tab {
+          width: 100%;
+          max-width: 300px;
+        }
+        
+        .activity-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+        
+        .navbar {
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+        }
+        
+        .nav-links {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+      
+      /* Loading states */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--ice-blue-light);
+        border-radius: 50%;
+        border-top-color: var(--frost-blue);
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Interactive improvements */
+      .activity-card {
+        cursor: pointer;
+      }
+      
+      .activity-card:active {
+        transform: scale(0.98);
+      }
+      
+      .category-tab:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a href="/" aria-label="Snowwords Home">❄️ Snowwords</a>
+        </div>
+        <div class="nav-links" role="navigation">
+            <a href="/profile">Profile</a>
+            <a href="/vocab">Vocab</a>
+            <a href="/activities" class="active">Activities</a>
+            <a href="/logout">Logout</a>
+        </div>
+      </nav>
+    </header>
+
+    <section class="page-header">
+      <div class="snowflake">❄️</div>
+      <div class="snowflake">❄️</div>
+      <div class="snowflake">❄️</div>
+      <div class="snowflake">❄️</div>
+      <h1>Snowwords Learning Activities</h1>
+      <p>Build your vocabulary snowball through AI conversations, vocabulary practice, and interactive quizzes. All activities are designed to help you master English words effectively!</p>
+    </section>
+
+    <main class="container">
+      <!-- Filter tabs removed as requested -->
+
+      <div class="featured-activity">
+        <div class="featured-content">
+          <span class="featured-badge">Premium Feature</span>
+          <h2>Crossword Puzzle Challenge</h2>
+          <p>Test your vocabulary knowledge with our interactive crossword puzzles! Each puzzle is carefully crafted using words from your personal vocabulary snowball, making learning both challenging and fun.</p>
+          <p>Complete puzzles to earn points and track your progress as you master new words!</p>
+        </div>
+        <div class="featured-image">
+          🧩
+        </div>
+      </div>
+
+      <div class="activity-grid">
+        <!-- Crossword Puzzle Section -->
+        <div class="activity-card premium">
+          <div class="activity-image">
+            🧩
+          </div>
+          <div class="activity-content">
+            <h3 class="activity-title">Crossword Puzzle</h3>
+            <p class="activity-description">Challenge yourself with interactive crossword puzzles featuring words from your vocabulary snowball. Perfect for reinforcing word meanings and spellings.</p>
+            <div class="activity-meta">
+              <span class="activity-level premium">Premium</span>
+              <a href="/premium/crossword" class="btn-primary">Start Puzzle</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Buddy Section -->
+        <div class="activity-card">
+          <div class="activity-image">
+            🤖
+          </div>
+          <div class="activity-content">
+            <h3 class="activity-title">AI Buddy Chat</h3>
+            <p class="activity-description">Chat with our AI Buddy to discover and learn new English words through engaging, personalized conversations.</p>
+            <div class="activity-meta">
+              <span class="activity-level">All Levels</span>
+              <a href="/chat" class="btn-primary">Start</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vocabulary Snowball Section -->
+        <div class="activity-card">
+          <div class="activity-image">
+            ❄️
+          </div>
+          <div class="activity-content">
+            <h3 class="activity-title">Vocabulary Snowball</h3>
+            <p class="activity-description">Collect and store words in your personal Snowball. Melt words into memory through spaced repetition and mini-games.</p>
+            <div class="activity-meta">
+              <span class="activity-level">All Levels</span>
+              <a href="/vocab" class="btn-primary">Start</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quizzes Section -->
+        <div class="activity-card">
+          <div class="activity-image">
+            ❓
+          </div>
+          <div class="activity-content">
+            <h3 class="activity-title">Vocabulary Quiz</h3>
+            <p class="activity-description">Test your knowledge with multiple-choice quizzes based on the words you've collected in your personal snowball.</p>
+            <div class="activity-meta">
+              <span class="activity-level">All Levels</span>
+              <a href="/test" class="btn-primary">Start</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Flashcards -->
+        <div class="activity-card">
+          <div class="activity-image">
+            🃏
+          </div>
+          <div class="activity-content">
+            <h3 class="activity-title">Flashcard Review</h3>
+            <p class="activity-description">Sharpen your vocabulary with fun flashcards for effective practice and lasting knowledge.</p>
+            <div class="activity-meta">
+              <span class="activity-level">All Levels</span>
+              <a href="/review" class="btn-primary">Start</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; <%= new Date().getFullYear() %> Snowwords. All Rights Reserved.</p>
+      <nav aria-label="Footer Navigation">
+        <a href="/privacy-policy">Privacy Policy</a> | 
+        <a href="/terms">Terms of Service</a> | 
+        <a href="/contact">Contact Us</a>
+      </nav>
+    </footer>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+      // Loading functionality for activity navigation
+      document.querySelectorAll('.activity-card a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          const loadingOverlay = document.getElementById('loadingOverlay');
+          loadingOverlay.style.display = 'flex';
+          
+          // Add a small delay to show loading state
+          setTimeout(() => {
+            window.location.href = this.href;
+          }, 300);
+        });
+      });
+      
+      // Page load completion
+      document.addEventListener('DOMContentLoaded', function() {
+        // Hide any loading states after page is fully loaded
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay.style.display === 'flex') {
+          loadingOverlay.style.display = 'none';
+        }
+        
+        // Add smooth animations for activity cards
+        const activityCards = document.querySelectorAll('.activity-card');
+        activityCards.forEach((card, index) => {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          
+          setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          }, index * 100);
+        });
+      });
+      
+      // Add click feedback for activity cards
+      document.querySelectorAll('.activity-card').forEach(card => {
+        card.addEventListener('click', function() {
+          this.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
+        });
+      });
+    </script>
+  </body>
+</html>
