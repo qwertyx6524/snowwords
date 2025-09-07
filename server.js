@@ -2260,14 +2260,97 @@ app.get('/api/admin/performance', ensureAdmin, async (req, res) => {
   }
 });
 
-// Premium Crossword Puzzle (Temporarily open to all users for testing)
-app.get('/premium/crossword', ensureAuthenticated, (req, res) => {
-  // Temporarily disabled premium check for testing
-  // if (req.user.subscriptionstatus !== 'premium') {
-  //   return res.redirect('/subscription/plans');
-  // }
-  res.render('premium/crossword', { user: req.user });
-});
+// Premium Activities – Crossword
+app.get('/premium/crossword',
+  ensureAuthenticated,
+  ensurePremium,
+  (req, res) => {
+    res.render('crossword', { user: req.user });
+  }
+);
+
+// Count endpoint already exists; keep it (used by EJS when not enough words). :contentReference[oaicite:6]{index=6}
+
+app.post('/api/premium/crossword/generate',
+  ensureAuthenticated,
+  ensurePremium,
+  async (req, res) => {
+    try {
+      // Pull up to 12 recent words with definitions
+      const { rows } = await db.query(`
+        SELECT word, COALESCE(NULLIF(TRIM(definition), ''), 'Your vocabulary word') AS definition
+        FROM vocabulary
+        WHERE userId = $1
+        ORDER BY dateAdded DESC
+        LIMIT 12
+      `, [req.user.id]);
+
+      if (!rows || rows.length < 5) {
+        return res.status(400).json({ error: 'You need at least 5 words to generate a puzzle' });
+      }
+
+      // Craft a simple non-overlapping mini puzzle (half across, half down)
+      const words = rows.map((r, i) => ({
+        number: i + 1,
+        answer: (r.word || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12) || `WORD${i+1}`,
+        clue: r.definition
+      })).filter(w => w.answer.length >= 2);
+
+      const mid = Math.ceil(words.length / 2);
+      const across = words.slice(0, mid);
+      const down   = words.slice(mid);
+
+      const size = Math.max(
+        10,
+        Math.max(...across.map(w => w.answer.length), 0) + 2,
+        down.length + 2
+      );
+
+      // Initialize grid with '#'
+      const grid = Array.from({ length: size }, () => Array(size).fill('#'));
+
+      let clueNo = 1;
+
+      // Place across words starting at rows 0,2,4...
+      across.forEach((w, idx) => {
+        const r = Math.min(idx * 2, size - 1);
+        for (let c = 0; c < w.answer.length && c < size; c++) {
+          const cellObj = grid[r][c] === '#' ? {} : grid[r][c];
+          if (c === 0) cellObj.number = clueNo;
+          cellObj.across = clueNo;
+          grid[r][c] = cellObj;
+        }
+        w.number = clueNo++;
+      });
+
+      // Place down words starting at col ~ size/2 onward
+      const baseCol = Math.min(Math.ceil(size / 2), size - 1);
+      down.forEach((w, idx) => {
+        const col = Math.min(baseCol + idx, size - 1);
+        for (let r = 0; r < w.answer.length && r < size; r++) {
+          const cellObj = grid[r][col] === '#' ? {} : grid[r][col];
+          if (r === 0) cellObj.number = clueNo;
+          cellObj.down = clueNo;
+          grid[r][col] = cellObj;
+        }
+        w.number = clueNo++;
+      });
+
+      res.json({
+        size,
+        grid,
+        clues: {
+          across: across.map(w => ({ number: w.number, clue: w.clue, answer: w.answer })),
+          down:   down.map(w   => ({ number: w.number, clue: w.clue, answer: w.answer }))
+        }
+      });
+    } catch (e) {
+      console.error('Crossword generate error:', e);
+      res.status(500).json({ error: 'Failed to generate crossword' });
+    }
+  }
+);
+
 
 // Production CSRF error handling
 app.use((err, req, res, next) => {
@@ -2304,7 +2387,8 @@ app.use(mainRoutes);
 app.use(premiumRoutes);
 
 // API routes for premium features
-app.use('/api/premium', premiumRoutes);
+app.use('/api/premium', ensureAuthenticated, ensurePremium, premiumRoutes);
+
 
 // Routes for the privacy policy
 app.get('/privacy-policy', (req, res) => {
