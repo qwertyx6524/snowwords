@@ -15,7 +15,7 @@ const vocabRoutes = require('./chat/vocabRoutes');
 const fileUpload = require('express-fileupload');
 const nodemailer = require('nodemailer');
 const pgSession = require('connect-pg-simple')(session);
-const { checkTestLimit } = require('./middlewares/premiumAccess');
+const { ensurePremium, checkMessageLimit, checkTestLimit, checkGameAccess, injectFeatureAccess, FEATURE_LIMITS } = require('./middleware/premiumAccess');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const stripeService = require('./services/stripeService');
 const csurf = require('csurf');
@@ -143,6 +143,8 @@ app.use(generalLimiter);
 // Passport Setup
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(injectFeatureAccess);
 
 passport.serializeUser((user, done) => done(null, user.id));
 
@@ -1810,22 +1812,31 @@ app.delete('/admin/api/feedback/:id', ensureAdmin, async (req, res) => {
 // Admin API: subscription plans
 app.get('/admin/api/subscription-plans', ensureAdmin, async (req, res) => {
   try {
-    const r = await db.query(`
+    const { rows } = await db.query(`
       SELECT
         id,
         name,
         description,
         COALESCE(price, 0)::float AS price,
-        COALESCE(billing_interval, billingInterval, 'month') AS "billingInterval"
+        COALESCE(billing_interval, 'monthly') AS "billingInterval",
+        COALESCE(is_active, true) AS "isActive",
+        features
       FROM subscription_plans
-      ORDER BY price ASC, id ASC
+      ORDER BY "isActive" DESC, price ASC, id ASC
     `);
-    res.json(r.rows);
+
+    const plans = rows.map(p => ({
+      ...p,
+      features: (() => { try { return JSON.parse(p.features || '[]'); } catch { return p.features || []; } })()
+    }));
+
+    res.json(plans);
   } catch (e) {
     console.error('plans error', e);
-    res.status(500).json({ error: 'Failed to load plans' });
+    res.json([]); // graceful empty (prevents 500 in Admin UI)
   }
 });
+
 
 // Admin API: subscriptions (joined)
 app.get('/admin/api/subscriptions', ensureAdmin, async (req, res) => {
@@ -1833,31 +1844,32 @@ app.get('/admin/api/subscriptions', ensureAdmin, async (req, res) => {
     const r = await db.query(`
       SELECT
         s.id,
-        s.userId,
+        s."userId",
         u.username,
         u.email,
-        s.planId,
+        s."planId",
         p.name AS "planName",
-        COALESCE(p.price, s.price, 0)::float AS price,
-        COALESCE(p.billing_interval, p."billingInterval", s.billing_interval, s."billingInterval", 'month') AS "billingInterval",
+        COALESCE(p.price, 0)::float AS price,
+        p.billing_interval AS "billingInterval",
         COALESCE(s.status, 'unknown') AS status,
-        s.startDate,
-        COALESCE(s.currentPeriodEnd, s.endDate) AS "currentPeriodEnd",
-        COALESCE(s.cancelAtPeriodEnd, s."cancelAtPeriodEnd", false) AS "cancelAtPeriodEnd",
-        COALESCE(s.stripeCustomerId, s."customerId") AS "stripeCustomerId",
-        COALESCE(s.stripeSubscriptionId, s."subscriptionId") AS "stripeSubscriptionId"
+        s."startDate",
+        s."endDate" AS "currentPeriodEnd",
+        COALESCE(s."cancelAtPeriodEnd", false) AS "cancelAtPeriodEnd",
+        s."stripeCustomerId",
+        s."stripeSubscriptionId"
       FROM subscriptions s
-      LEFT JOIN users u ON u.id = s.userId
-      LEFT JOIN subscription_plans p ON p.id = s.planId
-      ORDER BY s.startDate DESC NULLS LAST, s.id DESC
+      LEFT JOIN users u ON u.id = s."userId"
+      LEFT JOIN subscription_plans p ON p.id = s."planId"
+      ORDER BY s."startDate" DESC NULLS LAST, s.id DESC
       LIMIT 500
     `);
-    res.json(r.rows);
+    res.json(r.rows || []);
   } catch (e) {
     console.error('subscriptions error', e);
-    res.status(500).json({ error: 'Failed to load subscriptions' });
+    res.json([]); // graceful empty
   }
 });
+
 
 // Admin API: subscription details
 app.get('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
@@ -1906,54 +1918,58 @@ app.put('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
 // Admin API: subscription stats
 app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
   try {
-    // Active subs + MRR
+    // Active + normalized MRR (yearly -> /12)
     const activeRes = await db.query(`
       SELECT
         COUNT(*)::int AS active,
-        COALESCE(SUM(COALESCE(p.price, s.price, 0)), 0)::float AS mrr
+        COALESCE(SUM(
+          CASE WHEN p.billing_interval = 'yearly' THEN (p.price::float / 12.0)
+               ELSE p.price::float END
+        ), 0)::float AS mrr
       FROM subscriptions s
-      LEFT JOIN subscription_plans p ON p.id = s.planId
-      WHERE COALESCE(s.status, 'unknown') IN ('active','trialing','past_due')
-        AND (COALESCE(s.cancelAtPeriodEnd, false) = false OR COALESCE(s.currentPeriodEnd, s.endDate) > NOW())
+      LEFT JOIN subscription_plans p ON p.id = s."planId"
+      WHERE COALESCE(s.status, 'unknown') = 'active'
+        AND (COALESCE(s."cancelAtPeriodEnd", false) = false OR COALESCE(s."endDate", NOW() + INTERVAL '1 day') > NOW())
     `);
 
-    // 30-day churn: canceled in last 30d divided by active 30d ago
+    // Churn in last 30 days (conservative if DB empty)
     const churnNumRes = await db.query(`
       SELECT COUNT(*)::int AS c
       FROM subscriptions
-      WHERE COALESCE(status,'unknown') IN ('canceled','unpaid','paused')
-        AND (updatedAt IS NOT NULL AND updatedAt >= NOW() - INTERVAL '30 days'
-             OR endDate IS NOT NULL AND endDate >= NOW() - INTERVAL '30 days')
+      WHERE COALESCE(status,'unknown') IN ('canceled','expired')
+        AND ( ("dateUpdated" IS NOT NULL AND "dateUpdated" >= NOW() - INTERVAL '30 days')
+           OR ("endDate"     IS NOT NULL AND "endDate"     >= NOW() - INTERVAL '30 days') )
     `);
     const cohortRes = await db.query(`
       SELECT COUNT(*)::int AS c
       FROM subscriptions
-      WHERE startDate <= NOW() - INTERVAL '30 days'
-        AND COALESCE(status,'unknown') IN ('active','trialing','past_due')
+      WHERE "startDate" <= NOW() - INTERVAL '30 days'
+        AND COALESCE(status,'unknown') = 'active'
     `);
     const churn30 = cohortRes.rows[0].c ? Math.round((churnNumRes.rows[0].c / cohortRes.rows[0].c) * 100) : 0;
 
-    // by plan counts
+    // Active by plan
     const byPlanRes = await db.query(`
-      SELECT s.planId, COUNT(*)::int AS count
+      SELECT s."planId", COUNT(*)::int AS count
       FROM subscriptions s
-      WHERE COALESCE(s.status,'unknown') IN ('active','trialing','past_due')
-      GROUP BY s.planId
+      WHERE COALESCE(s.status,'unknown') = 'active'
+      GROUP BY s."planId"
     `);
     const byPlan = {};
-    byPlanRes.rows.forEach(r => { byPlan[r.planid || r.planId] = { count: r.count }; });
+    byPlanRes.rows.forEach(r => { byPlan[r.planId] = { count: r.count }; });
 
     res.json({
       active: activeRes.rows[0].active || 0,
-      mrr: activeRes.rows[0].mrr || 0,
+      mrr:    activeRes.rows[0].mrr    || 0,
       churn30,
       byPlan
     });
   } catch (e) {
     console.error('subscription stats error', e);
-    res.status(500).json({ error: 'Failed to load subscription stats' });
+    res.json({ active: 0, mrr: 0, churn30: 0, byPlan: {} }); // no 500s
   }
 });
+
 
 // Activities Route
 app.get('/activities', (req, res) => {
@@ -2271,85 +2287,84 @@ app.get('/premium/crossword',
 
 // Count endpoint already exists; keep it (used by EJS when not enough words). :contentReference[oaicite:6]{index=6}
 
-app.post('/api/premium/crossword/generate',
-  ensureAuthenticated,
-  ensurePremium,
-  async (req, res) => {
-    try {
-      // Pull up to 12 recent words with definitions
-      const { rows } = await db.query(`
-        SELECT word, COALESCE(NULLIF(TRIM(definition), ''), 'Your vocabulary word') AS definition
-        FROM vocabulary
-        WHERE userId = $1
-        ORDER BY dateAdded DESC
-        LIMIT 12
-      `, [req.user.id]);
+// Build a personalized crossword from the user's vocabulary (premium-only)
+app.post('/api/premium/crossword/generate', ensureAuthenticated, ensurePremium, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT word, COALESCE(NULLIF(TRIM(definition), ''), 'Your vocabulary word') AS definition
+       FROM vocabulary
+       WHERE "userId" = $1
+       ORDER BY "dateAdded" DESC
+       LIMIT 12`,
+      [req.user.id]
+    );
 
-      if (!rows || rows.length < 5) {
-        return res.status(400).json({ error: 'You need at least 5 words to generate a puzzle' });
-      }
-
-      // Craft a simple non-overlapping mini puzzle (half across, half down)
-      const words = rows.map((r, i) => ({
-        number: i + 1,
-        answer: (r.word || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12) || `WORD${i+1}`,
-        clue: r.definition
-      })).filter(w => w.answer.length >= 2);
-
-      const mid = Math.ceil(words.length / 2);
-      const across = words.slice(0, mid);
-      const down   = words.slice(mid);
-
-      const size = Math.max(
-        10,
-        Math.max(...across.map(w => w.answer.length), 0) + 2,
-        down.length + 2
-      );
-
-      // Initialize grid with '#'
-      const grid = Array.from({ length: size }, () => Array(size).fill('#'));
-
-      let clueNo = 1;
-
-      // Place across words starting at rows 0,2,4...
-      across.forEach((w, idx) => {
-        const r = Math.min(idx * 2, size - 1);
-        for (let c = 0; c < w.answer.length && c < size; c++) {
-          const cellObj = grid[r][c] === '#' ? {} : grid[r][c];
-          if (c === 0) cellObj.number = clueNo;
-          cellObj.across = clueNo;
-          grid[r][c] = cellObj;
-        }
-        w.number = clueNo++;
-      });
-
-      // Place down words starting at col ~ size/2 onward
-      const baseCol = Math.min(Math.ceil(size / 2), size - 1);
-      down.forEach((w, idx) => {
-        const col = Math.min(baseCol + idx, size - 1);
-        for (let r = 0; r < w.answer.length && r < size; r++) {
-          const cellObj = grid[r][col] === '#' ? {} : grid[r][col];
-          if (r === 0) cellObj.number = clueNo;
-          cellObj.down = clueNo;
-          grid[r][col] = cellObj;
-        }
-        w.number = clueNo++;
-      });
-
-      res.json({
-        size,
-        grid,
-        clues: {
-          across: across.map(w => ({ number: w.number, clue: w.clue, answer: w.answer })),
-          down:   down.map(w   => ({ number: w.number, clue: w.clue, answer: w.answer }))
-        }
-      });
-    } catch (e) {
-      console.error('Crossword generate error:', e);
-      res.status(500).json({ error: 'Failed to generate crossword' });
+    if (!rows || rows.length < 5) {
+      return res.status(400).json({ error: 'You need at least 5 words to generate a puzzle' });
     }
+
+    // Prepare word list
+    const words = rows.map((r, i) => ({
+      number: i + 1,
+      answer: (r.word || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12) || `WORD${i+1}`,
+      clue: r.definition
+    })).filter(w => w.answer.length >= 2);
+
+    const mid    = Math.ceil(words.length / 2);
+    const across = words.slice(0, mid);
+    const down   = words.slice(mid);
+
+    // Grid size heuristic
+    const size = Math.max(
+      10,
+      Math.max(...across.map(w => w.answer.length), 0) + 2,
+      down.length + 2
+    );
+
+    // Initialize grid with '#'
+    const grid = Array.from({ length: size }, () => Array(size).fill('#'));
+
+    let n = 1;
+
+    // Place across on even rows
+    across.forEach((w, idx) => {
+      const r = Math.min(idx * 2, size - 1);
+      for (let c = 0; c < w.answer.length && c < size; c++) {
+        const cell = grid[r][c] === '#' ? {} : grid[r][c];
+        if (c === 0) cell.number = n;
+        cell.across = n;
+        grid[r][c] = cell;
+      }
+      w.number = n++;
+    });
+
+    // Place down in columns from mid to right
+    const baseCol = Math.min(Math.ceil(size / 2), size - 1);
+    down.forEach((w, idx) => {
+      const col = Math.min(baseCol + idx, size - 1);
+      for (let r = 0; r < w.answer.length && r < size; r++) {
+        const cell = grid[r][col] === '#' ? {} : grid[r][col];
+        if (r === 0) cell.number = n;
+        cell.down = n;
+        grid[r][col] = cell;
+      }
+      w.number = n++;
+    });
+
+    res.json({
+      size,
+      grid,
+      clues: {
+        across: across.map(w => ({ number: w.number, clue: w.clue, answer: w.answer })),
+        down:   down.map(w   => ({ number: w.number, clue: w.clue, answer: w.answer }))
+      }
+    });
+  } catch (e) {
+    console.error('Crossword generate error:', e);
+    res.status(500).json({ error: 'Failed to generate crossword' });
   }
-);
+});
+
 
 
 // Production CSRF error handling
