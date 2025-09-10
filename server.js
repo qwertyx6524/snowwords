@@ -1394,10 +1394,16 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
     // Get all users with their vocabulary and message counts
     const usersResult = await db.query(`
       SELECT 
-        u.id, u.email, u.username, u.googleId, u.englishLevel, u.learningGoals
+        u.id,
+        u.email,
+        u.username,
+        u.googleId        AS "googleId",
+        u.englishLevel    AS "englishLevel",
+        u.learningGoals   AS "learningGoals"
       FROM users u
       ORDER BY u.id DESC
     `);
+
     const users = usersResult.rows;
     
     // For each user, get additional stats
@@ -1435,69 +1441,100 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
   try {
     const userId = req.params.id;
-    
-    // Get user info
-    const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+
+    // User (return fields in camelCase the UI expects)
+    const userResult = await db.query(`
+      SELECT
+        id,
+        email,
+        username,
+        googleId            AS "googleId",
+        englishLevel        AS "englishLevel",
+        learningGoals       AS "learningGoals",
+        avatarUrl           AS "avatarUrl",
+        subscriptionStatus  AS "subscriptionStatus"
+      FROM users
+      WHERE id = $1
+    `, [userId]);
+
     const user = userResult.rows[0];
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
-    // Get vocabulary
+
+    // Vocabulary (alias to camelCase so admin.ejs can read: correctCount/dateAdded/difficultyLevel)
     const vocabResult = await db.query(`
-      SELECT id, word, definition, difficultyLevel, correctCount, dateAdded 
-      FROM vocabulary 
-      WHERE userId = $1
+      SELECT
+        id,
+        word,
+        definition,
+        difficultyLevel  AS "difficultyLevel",
+        correctCount     AS "correctCount",
+        dateAdded        AS "dateAdded"
+      FROM vocabulary
+      WHERE "userId" = $1
       ORDER BY word ASC
     `, [userId]);
     const vocab = vocabResult.rows;
-    
-    // Get messages
-    const messagesResult = await db.query(`
-      SELECT id, role, content, timestamp 
-      FROM messages 
-      WHERE userId = $1
+
+    // Messages (already fine)
+    const messagesRes = await db.query(`
+      SELECT id, role, content, timestamp
+      FROM messages
+      WHERE "userId" = $1
       ORDER BY timestamp DESC
       LIMIT 100
     `, [userId]);
-    const messages = messagesResult.rows;
-    
-    // Calculate stats
-    const vocabCount = vocab.length;
-    const learnedCount = vocab.filter(v => v.correctcount >= 5).length;
-    const streak = await getCurrentStreak(userId);
-    const totalHours = await getTotalStudyHours(userId);
-    const accuracy = await calculateAccuracy(userId);
-    
-    // Calculate progress
-    const progress = vocabCount > 0 ? Math.min(Math.floor((learnedCount / 100) * 100), 100) : 0;
-    
-    // Get first activity date
+    const messages = messagesRes.rows;
+
+    // Stats
+    const vocabCount   = vocab.length;
+    const learnedCount = vocab.filter(v => (v.correctCount ?? 0) >= 5).length;
+
+    const streak       = await getCurrentStreak(userId);
+    const totalHours   = await getTotalStudyHours(userId);
+    const accuracy     = await calculateAccuracy(userId);
+    const progress     = vocabCount > 0 ? Math.min(Math.floor((learnedCount / 100) * 100), 100) : 0;
+
+    // First activity date (safe)
     let firstActivity = 'No activity';
-    if (messages.length > 0 || vocab.length > 0) {
+    if (messages.length || vocab.length) {
       const dates = [];
-      if (messages.length > 0) {
-        dates.push(new Date(messages[messages.length - 1].timestamp));
+      if (messages.length) dates.push(new Date(messages[messages.length - 1].timestamp));
+      if (vocab.length) {
+        const oldestVocab = await db.query(
+          `SELECT MIN(dateAdded) AS "firstDate" FROM vocabulary WHERE "userId" = $1`,
+          [userId]
+        );
+        if (oldestVocab.rows[0]?.firstDate) dates.push(new Date(oldestVocab.rows[0].firstDate));
       }
-      if (vocab.length > 0) {
-        const oldestVocabResult = await db.query(`
-          SELECT MIN(dateAdded) as firstDate FROM vocabulary WHERE userId = $1
-        `, [userId]);
-        if (oldestVocabResult.rows[0] && oldestVocabResult.rows[0].firstdate) {
-          dates.push(new Date(oldestVocabResult.rows[0].firstdate));
-        }
-      }
-      
-      // Find earliest date
-      if (dates.length > 0) {
-        const earliestDate = new Date(Math.min(...dates.map(d => d.getTime())));
-        firstActivity = earliestDate.toLocaleDateString();
+      if (dates.length) {
+        const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+        firstActivity = earliest.toLocaleDateString();
       }
     }
-    
-    // Get achievements
+
+    // Achievements (your helper)
     const achievements = await getAchievements(userId);
-    
+
+    // Respond with the exact shape admin.ejs uses
+    res.json({
+      user,
+      vocab,
+      messages,
+      stats: {
+        vocabCount,
+        learnedCount,
+        messageCount: messages.length,
+        streak,
+        totalHours,
+        accuracy,
+        progress,
+        firstActivity
+      },
+      achievements
+    });
+
     res.json({
       user,
       vocab,
