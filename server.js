@@ -1440,44 +1440,71 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 // Admin API: Get user details
 app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = Number(req.params.id);
 
-    // User (return fields in camelCase the UI expects)
+    // 1) Try to load the user (alias to camelCase for the frontend)
     const userResult = await db.query(`
       SELECT
         id,
         email,
         username,
-        googleId            AS "googleId",
-        englishLevel        AS "englishLevel",
-        learningGoals       AS "learningGoals",
-        avatarUrl           AS "avatarUrl",
-        subscriptionStatus  AS "subscriptionStatus"
+        "googleId"           AS "googleId",
+        "englishLevel"       AS "englishLevel",
+        "learningGoals"      AS "learningGoals",
+        "avatarUrl"          AS "avatarUrl",
+        "subscriptionStatus" AS "subscriptionStatus"
       FROM users
       WHERE id = $1
     `, [userId]);
 
-    const user = userResult.rows[0];
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    const userRow = userResult.rows[0];
+
+    // If user is missing (deleted or id never existed), return a stub instead of 404
+    if (!userRow) {
+      return res.json({
+        notFound: true,
+        user: {
+          id: userId,
+          email: '',
+          username: '(deleted user)',
+          googleId: null,
+          englishLevel: null,
+          learningGoals: null,
+          avatarUrl: null,
+          subscriptionStatus: 'free'
+        },
+        vocab: [],
+        messages: [],
+        stats: {
+          vocabCount: 0,
+          learnedCount: 0,
+          messageCount: 0,
+          streak: 0,
+          totalHours: 0,
+          accuracy: 0,
+          progress: 0,
+          firstActivity: 'No activity'
+        },
+        achievements: []
+      });
     }
 
-    // Vocabulary (alias to camelCase so admin.ejs can read: correctCount/dateAdded/difficultyLevel)
+    // 2) Load vocabulary (alias keys your UI reads)
     const vocabResult = await db.query(`
       SELECT
         id,
         word,
         definition,
-        difficultyLevel  AS "difficultyLevel",
-        correctCount     AS "correctCount",
-        dateAdded        AS "dateAdded"
+        "difficultyLevel" AS "difficultyLevel",
+        "correctCount"    AS "correctCount",
+        "dateAdded"       AS "dateAdded"
       FROM vocabulary
       WHERE "userId" = $1
       ORDER BY word ASC
     `, [userId]);
     const vocab = vocabResult.rows;
 
-    // Messages (already fine)
+    // 3) Load messages (latest 100)
     const messagesRes = await db.query(`
       SELECT id, role, content, timestamp
       FROM messages
@@ -1487,10 +1514,9 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
     `, [userId]);
     const messages = messagesRes.rows;
 
-    // Stats
+    // 4) Stats
     const vocabCount   = vocab.length;
     const learnedCount = vocab.filter(v => (v.correctCount ?? 0) >= 5).length;
-
     const streak       = await getCurrentStreak(userId);
     const totalHours   = await getTotalStudyHours(userId);
     const accuracy     = await calculateAccuracy(userId);
@@ -1503,7 +1529,7 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
       if (messages.length) dates.push(new Date(messages[messages.length - 1].timestamp));
       if (vocab.length) {
         const oldestVocab = await db.query(
-          `SELECT MIN(dateAdded) AS "firstDate" FROM vocabulary WHERE "userId" = $1`,
+          `SELECT MIN("dateAdded") AS "firstDate" FROM vocabulary WHERE "userId" = $1`,
           [userId]
         );
         if (oldestVocab.rows[0]?.firstDate) dates.push(new Date(oldestVocab.rows[0].firstDate));
@@ -1514,29 +1540,12 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
       }
     }
 
-    // Achievements (your helper)
+    // 5) Achievements (your existing helper)
     const achievements = await getAchievements(userId);
 
-    // Respond with the exact shape admin.ejs uses
+    // 6) Respond in the exact shape the UI expects
     res.json({
-      user,
-      vocab,
-      messages,
-      stats: {
-        vocabCount,
-        learnedCount,
-        messageCount: messages.length,
-        streak,
-        totalHours,
-        accuracy,
-        progress,
-        firstActivity
-      },
-      achievements
-    });
-
-    res.json({
-      user,
+      user: userRow,
       vocab,
       messages,
       stats: {
@@ -1553,9 +1562,10 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching user details:', err);
-    res.status(500).json({ error: 'Failed to fetch user details' });
+    res.status(500).json({ error: 'Failed to load user details' });
   }
 });
+
 
 // Admin API: Recent activity (messages + vocabulary), newest first
 app.get('/admin/api/activity', ensureAdmin, async (req, res) => {
