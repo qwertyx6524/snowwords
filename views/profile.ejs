@@ -343,6 +343,21 @@
     .feedback-modal-body p { color:#5b6a79; line-height:1.45 }
     .feedback-modal-footer { display:flex; justify-content:flex-end; gap:.5rem; margin-top:.8rem }
     .emoji { margin-right:.35rem }
+
+    /* Emoji fallback for avatars */
+    .avatar-emoji{
+      display:flex;align-items:center;justify-content:center;
+      background:#fff;color:#4682B4;
+      font-size:48px; /* header avatar size */
+    }
+
+    /* Bigger emoji for the preview in the modal */
+    .avatar-preview-emoji{
+      display:flex;align-items:center;justify-content:center;
+      background:#fff;color:#4682B4;
+      font-size:84px; /* modal preview size */
+    }
+
   </style>
 </head>
 <body>
@@ -364,7 +379,13 @@
     <!-- Profile header -->
     <div class="profile-header">
       <div class="avatar-container">
-        <img class="avatar" src="<%= user.avatarUrl || '/images/default-avatar.png' %>" alt="Profile picture" />
+        <% const hasAvatar = user.avatarUrl && String(user.avatarUrl).trim().length > 0; %>
+        <% if (hasAvatar) { %>
+          <img class="avatar" src="<%= user.avatarUrl %>" alt="Profile picture" />
+        <% } else { %>
+          <div class="avatar avatar-emoji" aria-label="No avatar">❄️</div>
+        <% } %>
+
         <div class="avatar-edit" onclick="openAvatarEditor()">Edit</div>
       </div>
 
@@ -393,7 +414,14 @@
         <div class="avatar-loading" id="avatarLoading"><div class="loading-spinner"></div></div>
         <h3>Update Your Profile Picture</h3>
         <div class="avatar-preview-container">
-          <img id="avatarPreview" class="avatar-preview" src="<%= user.avatarUrl || '/images/default-avatar.png' %>" alt="Avatar preview" />
+          <div class="avatar-preview-container">
+            <% const hasAvatarPrev = user.avatarUrl && String(user.avatarUrl).trim().length > 0; %>
+            <% if (hasAvatarPrev) { %>
+              <img id="avatarPreviewImg" class="avatar-preview" src="<%= user.avatarUrl %>" alt="Avatar preview" />
+            <% } else { %>
+              <div id="avatarPreviewEmoji" class="avatar-preview avatar-preview-emoji" aria-label="No avatar">❄️</div>
+            <% } %>
+          </div>          
         </div>
         <form id="avatarForm" method="POST" enctype="multipart/form-data" action="/update-avatar">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
@@ -596,10 +624,25 @@
     if (avatarInput){
       avatarInput.addEventListener('change', function(e){
         const file = e.target.files && e.target.files[0];
-        if(!file) return;
+        if (!file) return;
+
         const url = URL.createObjectURL(file);
-        const img = document.getElementById('avatarPreview');
-        if(img) img.src = url;
+
+        // If we were showing the emoji fallback, replace it with an <img>
+        const emoji = document.getElementById('avatarPreviewEmoji');
+        if (emoji) {
+          const img = document.createElement('img');
+          img.id = 'avatarPreviewImg';
+          img.className = 'avatar-preview';
+          img.alt = 'Avatar preview';
+          img.src = url;
+          emoji.replaceWith(img);
+          return;
+        }
+
+        // Otherwise just update the existing <img>
+        const img = document.getElementById('avatarPreviewImg');
+        if (img) img.src = url;
       });
     }
 
