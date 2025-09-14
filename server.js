@@ -580,25 +580,112 @@ async function calculateAccuracy(userId) {
   }
 }
 
+// Replace this function
 async function getAchievements(userId) {
-  try {
-    const achievements = [];
-    const vocabCountResult = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1', [userId]);
-    const vocabCount = vocabCountResult.rows[0].count;
-    const streak = await getCurrentStreak(userId);
-    const totalHours = await getTotalStudyHours(userId);
-    const accuracy = await calculateAccuracy(userId);
+  // --- 1) Collect metrics we need -----------------------------
+  // (We keep the same column casing your file already uses elsewhere.)
+  const [
+    vocabCountRes,
+    learnedRes,
+    testsRes,
+    messagesRes
+  ] = await Promise.all([
+    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1 AND correctCount >= 5', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM tests_taken WHERE userId = $1', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM messages WHERE userId = $1', [userId]),
+  ]);
 
-    if (vocabCount >= 50) achievements.push({ emoji: '📚', name: 'Bookworm' });
-    if (streak >= 5) achievements.push({ emoji: '🔥', name: '5 Day Streak' });
-    if (accuracy >= 90) achievements.push({ emoji: '🎯', name: 'Accuracy Master' });
-    if (totalHours >= 20) achievements.push({ emoji: '💡', name: 'Quick Learner' });
+  const vocabCount   = vocabCountRes.rows[0].c || 0;
+  const learnedCount = learnedRes.rows[0].c || 0;
+  const testsTaken   = testsRes.rows[0].c || 0;
+  const messageCount = messagesRes.rows[0].c || 0;
 
-    return achievements;
-  } catch (error) {
-    console.error('Error getting achievements:', error);
-    return [];
-  }
+  // words added this week (use same week logic already used elsewhere in your file)
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const weekRes = await db.query(
+    `SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1 AND dateAdded >= $2`,
+    [userId, weekStart.toISOString()]
+  );
+  const wordsThisWeek = weekRes.rows[0].c || 0;
+
+  // Early bird / Night owl (distinct days)
+  const earlyBirdRes = await db.query(
+    `SELECT COUNT(DISTINCT DATE(timestamp))::int AS c
+       FROM messages
+      WHERE userId = $1 AND EXTRACT(HOUR FROM timestamp) BETWEEN 5 AND 8`,
+    [userId]
+  );
+  const nightOwlRes = await db.query(
+    `SELECT COUNT(DISTINCT DATE(timestamp))::int AS c
+       FROM messages
+      WHERE userId = $1
+        AND (EXTRACT(HOUR FROM timestamp) >= 22 OR EXTRACT(HOUR FROM timestamp) < 3)`,
+    [userId]
+  );
+  const earlyBirdDays = earlyBirdRes.rows[0].c || 0;
+  const nightOwlDays  = nightOwlRes.rows[0].c || 0;
+
+  // Reuse your helpers
+  const streak     = await getCurrentStreak(userId);
+  const totalHours = await getTotalStudyHours(userId);
+  const accuracy   = await calculateAccuracy(userId);
+
+  const M = {
+    vocabCount, learnedCount, testsTaken, messageCount,
+    wordsThisWeek, earlyBirdDays, nightOwlDays, streak, totalHours, accuracy
+  };
+
+  // --- 2) Define the catalog ---------------------------------
+  const CATALOG = [
+    { key:'first_word',   emoji:'🌱', name:'First Word',           desc:'Add your first word',            metric:'vocabCount',   target:1 },
+    { key:'vocab_10',     emoji:'🧊', name:'10 Words',             desc:'Reach 10 words',                 metric:'vocabCount',   target:10 },
+    { key:'vocab_50',     emoji:'❄️', name:'50 Words',             desc:'Reach 50 words',                 metric:'vocabCount',   target:50 },
+    { key:'vocab_100',    emoji:'⛄️', name:'100 Words',            desc:'Reach 100 words',                metric:'vocabCount',   target:100 },
+
+    { key:'master_20',    emoji:'🏆', name:'20 Mastered',          desc:'Master 20 words (5/5)',          metric:'learnedCount', target:20 },
+
+    { key:'streak_3',     emoji:'🔥', name:'3-Day Streak',         desc:'Study 3 days in a row',          metric:'streak',       target:3 },
+    { key:'streak_7',     emoji:'🔥', name:'7-Day Streak',         desc:'Study 7 days in a row',          metric:'streak',       target:7 },
+    { key:'streak_14',    emoji:'🔥', name:'14-Day Streak',        desc:'Study 14 days in a row',         metric:'streak',       target:14 },
+
+    { key:'accuracy_70',  emoji:'🎯', name:'Accuracy 70%',         desc:'Reach 70% answer accuracy',      metric:'accuracy',     target:70 },
+    { key:'accuracy_85',  emoji:'🎯', name:'Accuracy 85%',         desc:'Reach 85% answer accuracy',      metric:'accuracy',     target:85 },
+    { key:'accuracy_95',  emoji:'🎯', name:'Accuracy 95%',         desc:'Reach 95% answer accuracy',      metric:'accuracy',     target:95 },
+
+    { key:'study_5h',     emoji:'⌛', name:'5 Study Hours',        desc:'Accumulate 5 hours of study',    metric:'totalHours',   target:5 },
+    { key:'study_20h',    emoji:'⌛', name:'20 Study Hours',       desc:'Accumulate 20 hours of study',   metric:'totalHours',   target:20 },
+
+    { key:'tests_5',      emoji:'📝', name:'Quiz Novice',          desc:'Complete 5 tests',               metric:'testsTaken',   target:5 },
+    { key:'tests_10',     emoji:'📝', name:'Quiz Master',          desc:'Complete 10 tests',              metric:'testsTaken',   target:10 },
+
+    { key:'week_10',      emoji:'📈', name:'+10 this week',        desc:'Add 10 words this week',         metric:'wordsThisWeek',target:10 },
+    { key:'marathon_100', emoji:'💬', name:'Chat Marathon',        desc:'Send 100 messages',              metric:'messageCount', target:100 },
+
+    { key:'early_bird',   emoji:'🌅', name:'Early Bird',           desc:'Study between 5–8am (any day)',  metric:'earlyBirdDays',target:1 },
+    { key:'night_owl',    emoji:'🌙', name:'Night Owl',            desc:'Study between 10pm–3am (any day)', metric:'nightOwlDays',target:1 },
+  ];
+
+  // --- 3) Compute earned + progress ---------------------------
+  return CATALOG.map(a => {
+    const current = Number(M[a.metric] ?? 0);
+    const target  = Number(a.target ?? 0);
+    const earned  = current >= target;
+    const progress = target > 0 ? Math.max(0, Math.min(1, current / target)) : (earned ? 1 : 0);
+
+    return {
+      key: a.key,
+      emoji: a.emoji,
+      name: a.name,
+      description: a.desc,
+      earned,
+      current,
+      target,
+      progress
+    };
+  });
 }
 
 // -------------------------------------------------------------------
@@ -802,26 +889,8 @@ app.get('/profile', ensureAuthenticated, async (req, res) => {
     const totalHours = await getTotalStudyHours(user.id);
     const accuracy = await calculateAccuracy(user.id);
 
-    // Define potential achievements.
-    const potentialAchievements = [
-      { emoji: '📚', name: 'Bookworm' },
-      { emoji: '🔥', name: '5 Day Streak' },
-      { emoji: '🎯', name: 'Accuracy Master' },
-      { emoji: '💡', name: 'Quick Learner' }
-    ];
-    
-    // Get obtained achievements.
-    const obtained = await getAchievements(user.id);
-    
-    // For each potential achievement, if it wasn't obtained, mark it as not obtained.
-    const achievements = potentialAchievements.map(p => {
-      const found = obtained.find(a => a.name === p.name);
-      if (found) {
-        return found;
-      } else {
-        return { emoji: '❓', name: p.name + ' (Not obtained)' };
-      }
-    });
+    // Full achievements with progress/unlocks
+    const achievements = await getAchievements(user.id);
 
     // Get user's active subscription if any
     const subscriptionResult = await db.query(`
