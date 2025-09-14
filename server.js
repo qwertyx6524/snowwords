@@ -1442,25 +1442,25 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
   try {
     const userId = Number(req.params.id);
 
-    // 1) Try to load the user (alias to camelCase for the frontend)
+    // 1) Load user (alias to camelCase for the frontend)
     const userResult = await db.query(`
       SELECT
         id,
         email,
         username,
-        "googleId"           AS "googleId",
-        "englishLevel"       AS "englishLevel",
-        "learningGoals"      AS "learningGoals",
-        "avatarUrl"          AS "avatarUrl",
-        "subscriptionStatus" AS "subscriptionStatus"
+        googleid          AS "googleId",
+        englishlevel      AS "englishLevel",
+        learninggoals     AS "learningGoals",
+        avatarurl         AS "avatarUrl",
+        subscriptionstatus AS "subscriptionStatus"
       FROM users
       WHERE id = $1
     `, [userId]);
 
-    const userRow = userResult.rows[0];
+    const user = userResult.rows[0];
 
-    // If user is missing (deleted or id never existed), return a stub instead of 404
-    if (!userRow) {
+    // If the user doesn't exist, return a stub so the panel still opens
+    if (!user) {
       return res.json({
         notFound: true,
         user: {
@@ -1489,26 +1489,26 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
       });
     }
 
-    // 2) Load vocabulary (alias keys your UI reads)
+    // 2) Vocabulary: use real column names (lowercase) and alias to camelCase
     const vocabResult = await db.query(`
       SELECT
         id,
         word,
         definition,
-        "difficultyLevel" AS "difficultyLevel",
-        "correctCount"    AS "correctCount",
-        "dateAdded"       AS "dateAdded"
+        difficultylevel AS "difficultyLevel",
+        correctcount    AS "correctCount",
+        dateadded       AS "dateAdded"
       FROM vocabulary
-      WHERE "userId" = $1
+      WHERE userid = $1
       ORDER BY word ASC
     `, [userId]);
     const vocab = vocabResult.rows;
 
-    // 3) Load messages (latest 100)
+    // 3) Messages (latest 100)
     const messagesRes = await db.query(`
       SELECT id, role, content, timestamp
       FROM messages
-      WHERE "userId" = $1
+      WHERE userid = $1
       ORDER BY timestamp DESC
       LIMIT 100
     `, [userId]);
@@ -1522,30 +1522,37 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
     const accuracy     = await calculateAccuracy(userId);
     const progress     = vocabCount > 0 ? Math.min(Math.floor((learnedCount / 100) * 100), 100) : 0;
 
-    // First activity date (safe)
+    // 5) First activity (safe, no typos or quoted columns)
     let firstActivity = 'No activity';
-    if (messages.length || vocab.length) {
-      const dates = [];
-      if (messages.length) dates.push(new Date(messages[messages.length - 1].timestamp));
-      if (vocab.length) {
-        const oldestVocab = await db.query(
-          `SELECT MIN("dateAdded") AS "firstDate" FROM vocabulary WHERE "userId" = $1`,
-          [userId]
-        );
-        if (oldestVocab.rows[0]?.firstDate) dates.push(new Date(oldestVocab.rows[0].firstDate));
-      }
-      if (dates.length) {
-        const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
-        firstActivity = earliest.toLocaleDateString();
+    let earliestTs = null;
+
+    if (messages.length) {
+      earliestTs = messages[messages.length - 1].timestamp;
+    }
+    if (vocab.length) {
+      const oldestVocab = await db.query(
+        `SELECT MIN(dateadded) AS firstdate
+         FROM vocabulary
+         WHERE userid = $1`,
+        [userId]
+      );
+      const fd = oldestVocab.rows?.[0]?.firstdate;
+      if (fd && (!earliestTs || new Date(fd) < new Date(earliestTs))) {
+        earliestTs = fd;
       }
     }
+    if (earliestTs) {
+      firstActivity = new Date(earliestTs).toLocaleDateString();
+    }
 
-    // 5) Achievements (your existing helper)
-    const achievements = await getAchievements(userId);
+    // 6) Achievements (keep your helper; if it's not defined it will throw—add a fallback if needed)
+    const achievements = typeof getAchievements === 'function'
+      ? await getAchievements(userId)
+      : [];
 
-    // 6) Respond in the exact shape the UI expects
+    // 7) Respond in the exact shape the UI expects
     res.json({
-      user: userRow,
+      user,
       vocab,
       messages,
       stats: {
@@ -1562,9 +1569,10 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching user details:', err);
-    res.status(500).json({ error: 'Failed to load user details' });
+    res.status(500).json({ error: 'Failed to fetch user details' });
   }
 });
+
 
 
 // Admin API: Recent activity (messages + vocabulary), newest first
