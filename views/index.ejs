@@ -149,6 +149,116 @@
         z-index: 1;
       }
 
+      /* Video Demo Section */
+      .video-demo-section {
+        background: linear-gradient(135deg, var(--snow-white) 0%, rgba(126, 200, 216, 0.1) 100%);
+        padding: 4rem 2rem;
+        margin: 4rem 0;
+        border-radius: 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .video-demo-section::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 120px;
+        height: 120px;
+        background: rgba(126, 200, 216, 0.2);
+        border-radius: 50%;
+        z-index: 0;
+      }
+
+      .video-demo-section::after {
+        content: '❄️';
+        position: absolute;
+        bottom: 20px;
+        left: 30px;
+        font-size: 3rem;
+        opacity: 0.1;
+        z-index: 0;
+      }
+
+      .video-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .video-demo-section h2 {
+        font-size: 2.2rem;
+        color: var(--polar-night);
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .video-demo-section p {
+        font-size: 1.1rem;
+        color: var(--polar-night);
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        opacity: 0.8;
+      }
+
+      .video-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(70, 130, 180, 0.2);
+        background: var(--polar-night);
+      }
+
+      .video-wrapper {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      }
+
+      .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .video-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem auto 2rem;
+        max-width: 600px;
+      }
+
+      .video-stat {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(126, 200, 216, 0.2);
+      }
+
+      .video-stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--frost-blue);
+        margin-bottom: 0.5rem;
+      }
+
+      .video-stat-label {
+        font-size: 0.9rem;
+        color: var(--polar-night);
+        opacity: 0.8;
+        font-weight: 500;
+      }
+
       /* Feature Grid */
       .features {
         display: grid;
@@ -216,6 +326,26 @@
 
       .btn-secondary:hover {
         background: var(--frost-blue);
+        transform: translateY(-2px);
+      }
+
+      .btn-video {
+        background: var(--frost-blue);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(70, 130, 180, 0.3);
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
+      }
+
+      .btn-video:hover {
+        background: var(--icy-turquoise);
         transform: translateY(-2px);
       }
 
@@ -444,6 +574,19 @@
           grid-template-columns: 1fr;
         }
 
+        .video-demo-section {
+          padding: 2rem 1rem;
+        }
+
+        .video-demo-section h2 {
+          font-size: 1.8rem;
+        }
+
+        .video-stats {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 1rem;
+        }
+
         .extension-content {
           grid-template-columns: 1fr;
           gap: 2rem;
@@ -483,6 +626,7 @@
         </div>
       </nav>
     </header>
+    
     <section class="hero-section">
       <div class="container">
         <!-- FIXED: H1 heading better suited to page content -->
@@ -493,6 +637,46 @@
         <% } else { %>
           <button class="btn-primary" onclick="location.href='/activities'">Continue Learning</button>
         <% } %>
+      </div>
+    </section>
+
+    <!-- Video Demo Section -->
+    <section class="video-demo-section">
+      <div class="container">
+        <div class="video-content">
+          <h2>🎬 See Snowwords in Action</h2>
+          <p>Watch how AI-powered conversations make vocabulary learning engaging and effective. See real features in action!</p>
+          
+          <div class="video-container">
+            <div class="video-wrapper">
+              <iframe 
+                src="https://youtu.be/nSd2PEArJo4" 
+                title="Snowwords App Demo - Learn English Vocabulary with AI"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen>
+              </iframe>
+            </div>
+          </div>
+
+          <div class="video-stats">
+            <div class="video-stat">
+              <div class="video-stat-number">5:30</div>
+              <div class="video-stat-label">Full Demo</div>
+            </div>
+            <div class="video-stat">
+              <div class="video-stat-number">3</div>
+              <div class="video-stat-label">Key Features</div>
+            </div>
+            <div class="video-stat">
+              <div class="video-stat-number">AI</div>
+              <div class="video-stat-label">Powered</div>
+            </div>
+          </div>
+
+          <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" target="_blank" rel="noopener noreferrer" class="btn-video">
+            🎥 Watch on YouTube
+          </a>
+        </div>
       </div>
     </section>
 
