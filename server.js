@@ -176,10 +176,24 @@ passport.use(new LocalStrategy({
   }
 }));
 
+// Determine callback URL based on environment
+const googleCallbackURL = process.env.GOOGLE_CALLBACK_URL ||
+                          (process.env.NODE_ENV === 'production'
+                            ? 'https://www.snowwords.com/auth/google/callback'
+                            : 'http://localhost:3000/auth/google/callback');
+
+console.log('='.repeat(60));
+console.log('GOOGLE OAUTH CONFIGURATION:');
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Callback URL:', googleCallbackURL);
+console.log('Client ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
+console.log('Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
+console.log('='.repeat(60));
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'https://www.snowwords.com/auth/google/callback'
+  callbackURL: googleCallbackURL
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingResult = await db.query('SELECT * FROM users WHERE googleId = $1', [profile.id]);

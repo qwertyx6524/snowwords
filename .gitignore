@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite
+*.db
+
+# Cache
+cache/
+tmp/
+
+# Session files
+sessions/
+
+# OS files
+.DS_Store
+Thumbs.db
