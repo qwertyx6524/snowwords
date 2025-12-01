@@ -7,8 +7,10 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
     <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign Up - Snowwords</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       /* Global: force full viewport height & disable scrolling - preserved as requested */
       html, body {
@@ -20,19 +22,26 @@
         flex-direction: column;
       }
       
-      /* Winter Theme Styles */
       :root {
-        --icy-turquoise: #7EC8D8;
-        --frost-blue: #4682B4;
-        --snow-white: #F8F9FA;
-        --polar-night: #2B3A4A;
+        --icy-turquoise: #06B6D4;
+        --frost-blue: #3B82F6;
+        --snow-white: #FFFFFF;
+        --polar-night: #0F172A;
+        --slate-50: #F8FAFC;
+        --slate-100: #F1F5F9;
+        --slate-200: #E2E8F0;
+        --slate-700: #334155;
+        --gradient-primary: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
       }
-      
+
       body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         color: var(--polar-night);
-        background: var(--snow-white);
-        line-height: 1.6;
+        background: var(--slate-50);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
       }
       
       /* The container with viewport-relative sizing */
@@ -64,66 +73,79 @@
         margin-bottom: min(1.5rem, 2vh);
       }
       
-      /* Scale signup card to fit viewports */
       .signup-card {
         background: white;
-        border-radius: 16px;
-        padding: min(2.5rem, 3vh) min(2.5rem, 3vw);
-        box-shadow: 0 4px 20px rgba(70, 130, 180, 0.08);
+        border-radius: 20px;
+        padding: min(3rem, 4vh) min(2.5rem, 3vw);
+        box-shadow: var(--shadow-xl);
         width: 90%;
         max-width: 500px;
         margin: min(2rem, 2vh) auto;
-        /* Scale content to fit */
-        font-size: min(1rem, 2vh);
+        border: 1px solid var(--slate-200);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
-      
+
+      .signup-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+      }
+
       .signup-card h2 {
-        color: var(--frost-blue);
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         text-align: center;
         margin-bottom: min(2rem, 2vh);
-        font-size: min(1.5rem, 3vh);
+        font-size: min(2rem, 3.5vh);
+        font-weight: 700;
       }
       
       form label {
         display: block;
-        margin: min(1rem, 1vh) 0 min(0.5rem, 0.5vh);
-        color: var(--polar-night);
-        font-weight: 500;
+        margin: min(1.5rem, 1.5vh) 0 min(0.5rem, 0.5vh);
+        color: var(--slate-700);
+        font-weight: 600;
+        font-size: 0.95rem;
       }
-      
+
       form input, form select {
         width: 100%;
-        padding: min(0.8rem, 1vh);
-        border: 2px solid var(--icy-turquoise);
-        border-radius: 8px;
+        padding: min(1rem, 1.2vh);
+        border: 2px solid var(--slate-200);
+        border-radius: 12px;
         font-size: min(1rem, 2vh);
         margin-bottom: min(1rem, 1vh);
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-sizing: border-box;
+        background: var(--slate-50);
       }
-      
+
       form input:focus, form select:focus {
         outline: none;
         border-color: var(--frost-blue);
-        box-shadow: 0 0 8px rgba(126, 200, 216, 0.3);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
       }
       
       .btn {
-        background: var(--icy-turquoise);
+        background: var(--gradient-primary);
         color: white;
         width: 100%;
-        padding: min(1rem, 1.5vh);
+        padding: min(1rem, 1.5vh) min(2rem, 2vw);
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: min(1.1rem, 2.2vh);
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         margin-top: min(1.5rem, 1.5vh);
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
       }
-      
+
       .btn:hover {
-        background: var(--frost-blue);
         transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
       }
       
       .badge-warm {
@@ -157,24 +179,27 @@
         background: white;
         color: #4285f4;
         width: 100%;
-        padding: min(0.8rem, 1vh);
-        border: 2px solid #ddd;
-        border-radius: 8px;
+        padding: min(1rem, 1.2vh);
+        border: 2px solid var(--slate-200);
+        border-radius: 12px;
         font-size: min(1rem, 2vh);
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         margin-top: min(1rem, 1vh);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
         box-sizing: border-box;
+        text-decoration: none;
       }
-      
+
       .btn-google:hover {
-        background: #f8f9fa;
+        background: var(--slate-50);
         border-color: #4285f4;
         transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(66, 133, 244, 0.15);
       }
       
       .google-icon {
@@ -186,14 +211,16 @@
         display: flex;
         align-items: center;
         margin: min(1.5rem, 1.5vh) 0;
-        color: var(--polar-night);
+        color: var(--slate-700);
+        font-size: 0.9rem;
+        font-weight: 500;
       }
-      
+
       .divider::before,
       .divider::after {
         content: "";
         flex: 1;
-        border-top: 2px solid var(--icy-turquoise);
+        border-top: 2px solid var(--slate-200);
         margin: 0 0.5rem;
       }
       

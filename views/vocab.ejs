@@ -7,24 +7,34 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
     <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My Vocabulary Snowbank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        --icy-turquoise: #7EC8D8;
-        --frost-blue: #4682B4;
-        --snow-white: #F8F9FA;
-        --polar-night: #2B3A4A;
-        --mastered-green: #4CAF50;
+        --icy-turquoise: #06B6D4;
+        --frost-blue: #3B82F6;
+        --snow-white: #FFFFFF;
+        --polar-night: #0F172A;
+        --slate-50: #F8FAFC;
+        --slate-100: #F1F5F9;
+        --slate-200: #E2E8F0;
+        --slate-700: #334155;
+        --mastered-green: #10B981;
+        --gradient-primary: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
       }
 
       body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        background: var(--snow-white);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: var(--slate-50);
         color: var(--polar-night);
         margin: 0;
         padding: 0;
         min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
       }
 
       .container {
@@ -34,56 +44,72 @@
       }
 
       .navbar {
-        background: var(--polar-night);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 1rem 2rem;
-        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid var(--slate-200);
       }
 
       .navbar-brand a {
-        color: var(--snow-white);
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         font-size: 1.5rem;
-        font-weight: 700;
+        font-weight: 800;
         text-decoration: none;
+        letter-spacing: -0.02em;
       }
 
       .nav-links {
         display: flex;
-        gap: 1.5rem;
+        gap: 2rem;
         align-items: center;
       }
 
       .nav-links a {
-        color: var(--snow-white);
+        color: var(--polar-night);
         text-decoration: none;
-        transition: color 0.3s ease;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .nav-links a:hover {
-        color: var(--icy-turquoise);
+        color: var(--frost-blue);
       }
 
       .hero-section {
-        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        background: var(--gradient-primary);
         color: var(--snow-white);
         text-align: center;
-        padding: 3rem 2rem;
+        padding: 3.5rem 2rem;
         margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
       }
 
       .hero-section h1 {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
+        font-weight: 700;
         margin: 0 0 1rem 0;
+        letter-spacing: -0.02em;
       }
 
       .section-title {
-        font-size: 1.8rem;
-        color: var(--frost-blue);
-        margin: 1.5rem 0 1rem;
-        border-bottom: 2px solid var(--icy-turquoise);
-        padding-bottom: 0.5rem;
+        font-size: 2rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 2rem 0 1.5rem;
+        border-bottom: 3px solid var(--slate-200);
+        padding-bottom: 0.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
       }
 
       .vocab-list {
@@ -91,63 +117,63 @@
       }
 
       .vocab-item {
-        background: var(--snow-white);
-        border: 2px solid var(--icy-turquoise);
-        border-radius: 1rem;
-        padding: 1.5rem;
+        background: white;
+        border: 2px solid var(--slate-200);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 8px rgba(70, 130, 180, 0.1);
+        box-shadow: var(--shadow-md);
         position: relative;
-        transition: transform 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .vocab-item:hover {
-        transform: translateY(-3px);
-      }
-
-      .vocab-item::before {
-        content: '❄️';
-        position: absolute;
-        left: -15px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0.5;
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--frost-blue);
       }
 
       .vocab-word {
         font-weight: 700;
-        color: var(--frost-blue);
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.4rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.01em;
       }
 
       .vocab-def {
         color: var(--polar-night);
-        line-height: 1.6;
+        line-height: 1.7;
+        font-size: 1.05rem;
       }
 
-      /* Badge for mastered words */
       .mastered-badge {
         display: inline-block;
         background: var(--mastered-green);
         color: white;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin-left: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 0.75rem;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
       }
 
-      /* Button to link to the quiz page */
       .btn-quiz {
-        background: var(--icy-turquoise);
-        color: var(--snow-white);
-        padding: 0.8rem 1.5rem;
+        background: var(--gradient-primary);
+        color: white;
+        padding: 1rem 2rem;
         border: none;
-        border-radius: 0.8rem;
+        border-radius: 0.75rem;
         font-size: 1.1rem;
+        font-weight: 600;
         cursor: pointer;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
         display: inline-block;
         margin: 2rem auto;
       }

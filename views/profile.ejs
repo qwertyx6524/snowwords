@@ -10,64 +10,75 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= user.username %>'s Profile - Snowwords</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --icy-turquoise: #7EC8D8;
-      --frost-blue: #4682B4;
-      --polar-night: #2B3A4A;
+      --icy-turquoise: #06B6D4;
+      --frost-blue: #3B82F6;
+      --polar-night: #0F172A;
       --snow-white: #FFFFFF;
-      --soft-sky: #E6EEF2;
-      --glacier: #F7FBFD;
-      --mild-blue: #A7C7E7;
-      --warning: #F5A524;
-      --danger: #DC3545;
-      --success: #2BB673;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-700: #334155;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --success: #10B981;
+      --gradient-primary: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
     }
 
-    /* Global Styles */
     body {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, system-ui, sans-serif;
-      background: linear-gradient(180deg, #F7FBFD 0%, #EAF4F8 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--slate-50);
       color: var(--polar-night);
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
-      background: var(--snow-white);
-      border-bottom: 1px solid var(--soft-sky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--slate-200);
       position: sticky;
       top: 0;
       z-index: 10;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
     }
 
     .navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: .9rem 1.25rem;
+      padding: 1rem 1.25rem;
       max-width: 1200px;
       margin: 0 auto;
     }
 
     .navbar-brand a {
-      color: var(--frost-blue);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       text-decoration: none;
       font-weight: 800;
-      letter-spacing: .2px;
-      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      font-size: 1.5rem;
     }
 
     .nav-links a {
-      margin-left: 1rem;
+      margin-left: 2rem;
       text-decoration: none;
       color: var(--polar-night);
-      opacity: .9;
-      font-weight: 600;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .nav-links a.active { color: var(--frost-blue) }
-    .nav-links a:hover { opacity: 1 }
+    .nav-links a:hover { color: var(--frost-blue) }
 
     .container {
       max-width: 1100px;
@@ -75,17 +86,22 @@
       padding: 1.25rem;
     }
 
-    /* Profile Header */
     .profile-header {
-      background: var(--snow-white);
-      border: 1px solid var(--soft-sky);
-      border-radius: 16px;
-      box-shadow: 0 10px 24px rgba(70,130,180,.06);
-      padding: 1.2rem;
+      background: white;
+      border: 2px solid var(--slate-200);
+      border-radius: 1.25rem;
+      box-shadow: var(--shadow-xl);
+      padding: 2rem;
       display: grid;
       align-items: center;
       grid-template-columns: auto 1fr auto;
-      gap: 1rem;
+      gap: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .profile-header:hover {
+      border-color: var(--frost-blue);
+      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
     }
 
     .avatar-container {

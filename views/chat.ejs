@@ -7,16 +7,24 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
     <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="<%= csrfToken %>">
     <title>Snowwords AI Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-      /* Updated Winter Theme Variables */
       :root {
-        --icy-turquoise: #7EC8D8;
-        --frost-blue: #4682B4;
-        --snow-white: #F8F9FA;
-        --polar-night: #2B3A4A;
+        --icy-turquoise: #06B6D4;
+        --frost-blue: #3B82F6;
+        --snow-white: #FFFFFF;
+        --polar-night: #0F172A;
+        --slate-50: #F8FAFC;
+        --slate-100: #F1F5F9;
+        --slate-200: #E2E8F0;
+        --slate-700: #334155;
+        --gradient-primary: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
       }
 
       * {
@@ -30,10 +38,11 @@
       }
 
       body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         color: var(--polar-night);
-        background: var(--snow-white);
-        overflow: hidden; /* No global scrollbar; the chat area will handle it */
+        background: var(--slate-50);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
       }
 
       .page-wrapper {
@@ -42,33 +51,40 @@
         height: 100%;
       }
 
-      /* Navbar */
       .navbar {
-        background: var(--polar-night);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 1rem 2rem;
-        box-shadow: 0 2px 10px rgba(43, 58, 74, 0.1);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid var(--slate-200);
       }
       .navbar-brand a {
-        color: var(--snow-white);
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         font-size: 1.5rem;
-        font-weight: 700;
+        font-weight: 800;
         text-decoration: none;
+        letter-spacing: -0.02em;
       }
       .nav-links {
         display: flex;
-        gap: 1.5rem;
+        gap: 2rem;
         align-items: center;
       }
       .nav-links a {
-        color: var(--snow-white);
+        color: var(--polar-night);
         text-decoration: none;
-        transition: color 0.3s ease;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .nav-links a:hover {
-        color: var(--icy-turquoise);
+        color: var(--frost-blue);
       }
       .btn-secondary {
         background: var(--polar-night);
@@ -86,17 +102,19 @@
         background: var(--frost-blue);
       }
 
-      /* Hero Section */
       .hero-section {
-        background: linear-gradient(160deg, var(--frost-blue) 0%, var(--icy-turquoise) 100%);
+        background: var(--gradient-primary);
         color: var(--snow-white);
         text-align: center;
-        padding: 2rem;
+        padding: 2.5rem 2rem;
         position: relative;
+        box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
       }
       .hero-section h1 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.02em;
       }
 
       /* Tooltip */
@@ -135,29 +153,33 @@
         display: none;           /* Hide scrollbar in Chrome/Edge/Safari */
       }
 
-      /* Chat Bubbles */
       .bubble {
         margin: 1rem;
-        padding: 1rem 1.5rem;
-        border-radius: 1rem;
-        line-height: 1.5;
+        padding: 1.25rem 1.75rem;
+        border-radius: 1.25rem;
+        line-height: 1.6;
         position: relative;
-        box-shadow: 0 2px 8px rgba(70, 130, 180, 0.1);
+        box-shadow: var(--shadow-md);
         word-break: break-word;
         max-width: 95%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
-      /* Align user messages on the right side */
+      .bubble:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
       .user-msg {
-        background: var(--snow-white);
-        border: 2px solid var(--icy-turquoise);
-        align-self: flex-end;   /* Right side alignment in the flex column */
-        text-align: right;      /* Text within bubble also right-aligned */
+        background: var(--gradient-primary);
+        color: white;
+        align-self: flex-end;
+        text-align: right;
+        border: none;
       }
-      /* AI messages on the left side */
       .ai-msg {
-        background: var(--snow-white);
-        border: 2px solid var(--frost-blue);
-        align-self: flex-start; 
+        background: white;
+        border: 2px solid var(--slate-200);
+        align-self: flex-start;
+        color: var(--polar-night);
       }
 
       /* Each clickable word in chat */
@@ -184,29 +206,38 @@
         background: var(--snow-white);
       }
       #userInput {
-        flex: 1; /* fill leftover space */
+        flex: 1;
         font-size: 1rem;
-        border: 2px solid var(--frost-blue);
-        border-radius: 0.8rem;
+        border: 2px solid var(--slate-200);
+        border-radius: 0.75rem;
         padding: 0 1rem;
-        height: 3.125rem; /* same as buttons */
+        height: 3.125rem;
         box-sizing: border-box;
+        background: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #userInput:focus {
+        outline: none;
+        border-color: var(--frost-blue);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
       }
       .btn {
-        background: var(--icy-turquoise);
-        color: var(--snow-white);
+        background: var(--gradient-primary);
+        color: white;
         border: none;
-        border-radius: 0.8rem;
+        border-radius: 0.75rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 1rem;
-        height: 3.125rem;  
+        font-weight: 600;
+        height: 3.125rem;
         box-sizing: border-box;
         padding: 0 1.5rem;
+        box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
       }
       .btn:hover {
-        background: var(--frost-blue);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.35);
       }
 
       /* Sidebar (closed by default) */
@@ -241,24 +272,33 @@
         margin-right: 10%;
       }
 
-      /* Vocab Items */
       .vocab-item {
-        background: rgba(126, 200, 216, 0.1);
-        border-radius: 0.8rem;
-        padding: 1rem;
+        background: white;
+        border-radius: 1rem;
+        padding: 1.25rem;
         margin-bottom: 1rem;
-        border: 1px solid var(--icy-turquoise);
+        border: 2px solid var(--slate-200);
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .vocab-item:hover {
+        border-color: var(--frost-blue);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
       }
 
-      /* Word title styling */
       .word-title {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: 700;
-        color: var(--frost-blue);
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.3rem;
-        border-bottom: 1px solid var(--icy-turquoise);
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--slate-200);
         text-transform: uppercase;
+        letter-spacing: -0.01em;
       }
 
       /* Definition and example text styling */
