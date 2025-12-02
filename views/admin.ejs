@@ -490,6 +490,46 @@
                             </div>
                           </div>
                         </div>
+
+                        <!-- Grant Premium Modal -->
+                        <div class="modal fade" id="grantPremiumModal" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Grant Premium Access</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form id="grantPremiumForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Search User</label>
+                                        <input id="userSearch" type="text" class="form-control" placeholder="Enter username or email..." autocomplete="off">
+                                        <div id="userSearchResults" class="list-group mt-2" style="max-height: 200px; overflow-y: auto;"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Selected User</label>
+                                        <input id="selectedUserDisplay" type="text" class="form-control" readonly placeholder="No user selected">
+                                        <input id="selectedUserId" type="hidden">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Duration (Months)</label>
+                                        <select id="premiumDuration" class="form-select">
+                                            <option value="1">1 Month</option>
+                                            <option value="3">3 Months</option>
+                                            <option value="6">6 Months</option>
+                                            <option value="12" selected>12 Months (1 Year)</option>
+                                            <option value="24">24 Months (2 Years)</option>
+                                        </select>
+                                    </div>
+                                </form>
+                              </div>
+                              <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button id="grantPremiumBtn" class="btn btn-primary">Grant Premium</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     </div>
 
                     <!-- Subscriptions Tab -->
@@ -548,7 +588,12 @@
                             <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="bi bi-receipt me-2"></i> Subscriptions</h5>
-                                <input id="subsSearch" class="form-control form-control-sm" style="max-width:280px" placeholder="Search by name, email, plan, status…">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#grantPremiumModal">
+                                        <i class="bi bi-plus-circle me-1"></i>Grant Premium
+                                    </button>
+                                    <input id="subsSearch" class="form-control form-control-sm" style="max-width:280px" placeholder="Search by name, email, plan, status…">
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -1275,7 +1320,8 @@
             <td>${renew}</td>
             <td>${price}</td>
             <td class="text-end">
-                <button class="btn btn-sm btn-outline-secondary" onclick="viewSubscription(${s.id})"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="viewSubscription(${s.id})" title="View Details"><i class="bi bi-eye"></i></button>
+                ${s.status === 'active' ? `<button class="btn btn-sm btn-outline-danger" onclick="revokePremium(${s.userId}, '${s.username || 'User ' + s.userId}')" title="Revoke Premium"><i class="bi bi-x-circle"></i></button>` : `<button class="btn btn-sm btn-outline-success" onclick="grantPremiumToUser(${s.userId}, '${s.username || 'User ' + s.userId}')" title="Grant Premium"><i class="bi bi-plus-circle"></i></button>`}
             </td>
             `;
             tbody.appendChild(tr);
@@ -1315,6 +1361,129 @@
             showAlert('error', 'Failed to load subscription');
             });
         }
+
+        // User search for grant premium modal
+        let searchTimeout;
+        document.getElementById('userSearch')?.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            const resultsDiv = document.getElementById('userSearchResults');
+
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/admin/api/users?search=${encodeURIComponent(query)}`)
+                    .then(r => r.ok ? r.json() : Promise.reject(r))
+                    .then(users => {
+                        resultsDiv.innerHTML = '';
+                        if (!users || users.length === 0) {
+                            resultsDiv.innerHTML = '<div class="list-group-item text-muted">No users found</div>';
+                            return;
+                        }
+                        users.forEach(user => {
+                            const item = document.createElement('a');
+                            item.href = '#';
+                            item.className = 'list-group-item list-group-item-action';
+                            item.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${user.username}</strong>
+                                        <br><small class="text-muted">${user.email}</small>
+                                    </div>
+                                    <span class="badge bg-${user.subscriptionStatus === 'premium' ? 'success' : 'secondary'}">${user.subscriptionStatus || 'free'}</span>
+                                </div>
+                            `;
+                            item.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                document.getElementById('selectedUserId').value = user.id;
+                                document.getElementById('selectedUserDisplay').value = `${user.username} (${user.email})`;
+                                resultsDiv.innerHTML = '';
+                                document.getElementById('userSearch').value = '';
+                            });
+                            resultsDiv.appendChild(item);
+                        });
+                    })
+                    .catch(err => {
+                        console.error('User search error', err);
+                        resultsDiv.innerHTML = '<div class="list-group-item text-danger">Search failed</div>';
+                    });
+            }, 300);
+        });
+
+        // Grant premium button in modal
+        document.getElementById('grantPremiumBtn')?.addEventListener('click', function() {
+            const userId = document.getElementById('selectedUserId').value;
+            const durationMonths = parseInt(document.getElementById('premiumDuration').value);
+
+            if (!userId) {
+                showAlert('error', 'Please select a user');
+                return;
+            }
+
+            if (confirm(`Grant ${durationMonths} months of premium access to this user?`)) {
+                fetch(`/admin/api/users/${userId}/grant-premium`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ durationMonths })
+                })
+                .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+                .then(result => {
+                    showAlert('success', result.message || 'Premium access granted');
+                    bootstrap.Modal.getInstance(document.getElementById('grantPremiumModal')).hide();
+                    document.getElementById('selectedUserId').value = '';
+                    document.getElementById('selectedUserDisplay').value = '';
+                    loadSubscriptionsTab();
+                })
+                .catch(err => {
+                    console.error('Grant premium error', err);
+                    showAlert('error', err.error || 'Failed to grant premium access');
+                });
+            }
+        });
+
+        // Grant premium to specific user (from table)
+        window.grantPremiumToUser = function(userId, username) {
+            const durationMonths = 12;
+            if (confirm(`Grant ${durationMonths} months of premium access to ${username}?`)) {
+                fetch(`/admin/api/users/${userId}/grant-premium`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ durationMonths })
+                })
+                .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+                .then(result => {
+                    showAlert('success', result.message || 'Premium access granted');
+                    loadSubscriptionsTab();
+                })
+                .catch(err => {
+                    console.error('Grant premium error', err);
+                    showAlert('error', err.error || 'Failed to grant premium access');
+                });
+            }
+        };
+
+        // Revoke premium from user
+        window.revokePremium = function(userId, username) {
+            if (confirm(`Revoke premium access from ${username}? This will cancel their subscription immediately.`)) {
+                fetch(`/admin/api/users/${userId}/revoke-premium`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+                .then(result => {
+                    showAlert('success', result.message || 'Premium access revoked');
+                    loadSubscriptionsTab();
+                })
+                .catch(err => {
+                    console.error('Revoke premium error', err);
+                    showAlert('error', err.error || 'Failed to revoke premium access');
+                });
+            }
+        };
 
         // ---------- Feedback ----------
         function loadFeedback() {

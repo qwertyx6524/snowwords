@@ -1474,45 +1474,66 @@ app.get('/admin/api/stats', ensureAdmin, async (req, res) => {
 // Admin API: Get all users
 app.get('/admin/api/users', ensureAdmin, async (req, res) => {
   try {
+    const searchQuery = req.query.search;
+
     // Get all users with their vocabulary and message counts
-    const usersResult = await db.query(`
-      SELECT 
+    let query = `
+      SELECT
         u.id,
         u.email,
         u.username,
         u.googleId        AS "googleId",
         u.englishLevel    AS "englishLevel",
-        u.learningGoals   AS "learningGoals"
+        u.learningGoals   AS "learningGoals",
+        u."subscriptionStatus" AS "subscriptionStatus"
       FROM users u
-      ORDER BY u.id DESC
-    `);
+    `;
+
+    const params = [];
+    if (searchQuery) {
+      query += ` WHERE (u.username ILIKE $1 OR u.email ILIKE $1)`;
+      params.push(`%${searchQuery}%`);
+    }
+
+    query += ` ORDER BY u.id DESC`;
+
+    if (searchQuery) {
+      query += ` LIMIT 20`;
+    }
+
+    const usersResult = await db.query(query, params);
 
     const users = usersResult.rows;
-    
-    // For each user, get additional stats
+
+    // If searching, return simple results without stats
+    if (searchQuery) {
+      return res.json(users);
+    }
+
+    // For each user, get additional stats (only when not searching)
     for (const user of users) {
       // Get vocabulary count
       const vocabCountResult = await db.query(`
         SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1
       `, [user.id]);
       user.vocabCount = parseInt(vocabCountResult.rows[0].count);
-      
+
       // Get learned count (mastered words)
       const learnedCountResult = await db.query(`
         SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1 AND correctCount >= 5
       `, [user.id]);
       const learnedCount = parseInt(learnedCountResult.rows[0].count);
-      
+
       // Calculate progress
       user.progress = user.vocabCount > 0 ? Math.min(Math.floor((learnedCount / 100) * 100), 100) : 0;
-      
+
       // Get message count
       const messageCountResult = await db.query(`
         SELECT COUNT(*) as count FROM messages WHERE userId = $1
       `, [user.id]);
       user.messageCount = parseInt(messageCountResult.rows[0].count);
     }
-    
+
     res.json(users);
   } catch (err) {
     console.error('Error fetching users:', err);
@@ -2105,6 +2126,99 @@ app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
   } catch (e) {
     console.error('subscription stats error', e);
     res.json({ active: 0, mrr: 0, churn30: 0, byPlan: {} }); // no 500s
+  }
+});
+
+// Admin API: Grant premium to user
+app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { planId, durationMonths = 12 } = req.body;
+
+    // Check if user exists
+    const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get plan or use first available plan
+    let selectedPlanId = planId;
+    if (!selectedPlanId) {
+      const planResult = await db.query(`
+        SELECT id FROM subscription_plans
+        WHERE is_active = true
+        ORDER BY price ASC
+        LIMIT 1
+      `);
+      if (planResult.rows.length === 0) {
+        return res.status(400).json({ error: 'No active subscription plans available' });
+      }
+      selectedPlanId = planResult.rows[0].id;
+    }
+
+    // Calculate dates
+    const now = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+
+    // Create subscription
+    await db.query(`
+      INSERT INTO subscriptions (
+        "userId", "planId", status, "startDate", "endDate",
+        "stripeCustomerId", "stripeSubscriptionId"
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [
+      userId,
+      selectedPlanId,
+      'active',
+      now.toISOString(),
+      endDate.toISOString(),
+      'admin-grant',
+      'admin-grant-' + Date.now()
+    ]);
+
+    // Update user subscription status
+    await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['premium', userId]);
+
+    res.json({
+      success: true,
+      message: 'Premium access granted successfully',
+      endDate: endDate.toISOString()
+    });
+  } catch (e) {
+    console.error('grant premium error', e);
+    res.status(500).json({ error: 'Failed to grant premium access' });
+  }
+});
+
+// Admin API: Revoke premium from user
+app.post('/admin/api/users/:userId/revoke-premium', ensureAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+
+    // Check if user exists
+    const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update all active subscriptions to canceled
+    await db.query(`
+      UPDATE subscriptions
+      SET status = 'canceled', "endDate" = NOW()
+      WHERE "userId" = $1 AND status = 'active'
+    `, [userId]);
+
+    // Update user subscription status to free
+    await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['free', userId]);
+
+    res.json({
+      success: true,
+      message: 'Premium access revoked successfully'
+    });
+  } catch (e) {
+    console.error('revoke premium error', e);
+    res.status(500).json({ error: 'Failed to revoke premium access' });
   }
 });
 
