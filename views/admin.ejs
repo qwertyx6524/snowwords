@@ -671,14 +671,11 @@
           <div class="modal-body">
             <form id="grantPremiumForm">
                 <div class="mb-3">
-                    <label class="form-label">Search User</label>
-                    <input id="userSearch" type="text" class="form-control" placeholder="Enter username or email..." autocomplete="off">
-                    <div id="userSearchResults" class="list-group mt-2" style="max-height: 200px; overflow-y: auto;"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Selected User</label>
-                    <input id="selectedUserDisplay" type="text" class="form-control" readonly placeholder="No user selected">
-                    <input id="selectedUserId" type="hidden">
+                    <label class="form-label">Select User</label>
+                    <select id="userSelect" class="form-select" size="8" style="font-family: monospace;">
+                        <option value="">Loading users...</option>
+                    </select>
+                    <small class="text-muted">Showing username, email, and current status</small>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Duration (Months)</label>
@@ -1362,61 +1359,37 @@
             });
         }
 
-        // User search for grant premium modal
-        let searchTimeout;
-        document.getElementById('userSearch')?.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            const resultsDiv = document.getElementById('userSearchResults');
+        // Load users into dropdown when modal opens
+        document.getElementById('grantPremiumModal')?.addEventListener('show.bs.modal', function() {
+            const select = document.getElementById('userSelect');
+            select.innerHTML = '<option value="">Loading users...</option>';
 
-            clearTimeout(searchTimeout);
-
-            if (query.length < 2) {
-                resultsDiv.innerHTML = '';
-                return;
-            }
-
-            searchTimeout = setTimeout(() => {
-                fetch(`/admin/api/users?search=${encodeURIComponent(query)}`)
-                    .then(r => r.ok ? r.json() : Promise.reject(r))
-                    .then(users => {
-                        resultsDiv.innerHTML = '';
-                        if (!users || users.length === 0) {
-                            resultsDiv.innerHTML = '<div class="list-group-item text-muted">No users found</div>';
-                            return;
-                        }
-                        users.forEach(user => {
-                            const item = document.createElement('a');
-                            item.href = '#';
-                            item.className = 'list-group-item list-group-item-action';
-                            item.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${user.username}</strong>
-                                        <br><small class="text-muted">${user.email}</small>
-                                    </div>
-                                    <span class="badge bg-${user.subscriptionStatus === 'premium' ? 'success' : 'secondary'}">${user.subscriptionStatus || 'free'}</span>
-                                </div>
-                            `;
-                            item.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                document.getElementById('selectedUserId').value = user.id;
-                                document.getElementById('selectedUserDisplay').value = `${user.username} (${user.email})`;
-                                resultsDiv.innerHTML = '';
-                                document.getElementById('userSearch').value = '';
-                            });
-                            resultsDiv.appendChild(item);
-                        });
-                    })
-                    .catch(err => {
-                        console.error('User search error', err);
-                        resultsDiv.innerHTML = '<div class="list-group-item text-danger">Search failed</div>';
+            fetch('/admin/api/users')
+                .then(r => r.ok ? r.json() : Promise.reject(r))
+                .then(users => {
+                    select.innerHTML = '<option value="">-- Select a user --</option>';
+                    if (!users || users.length === 0) {
+                        select.innerHTML = '<option value="">No users found</option>';
+                        return;
+                    }
+                    users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        const status = user.subscriptionStatus === 'premium' ? '⭐' : '👤';
+                        const statusText = user.subscriptionStatus === 'premium' ? 'Premium' : 'Free';
+                        option.textContent = `${status} ${user.username.padEnd(20)} | ${user.email.padEnd(30)} | ${statusText}`;
+                        select.appendChild(option);
                     });
-            }, 300);
+                })
+                .catch(err => {
+                    console.error('User load error', err);
+                    select.innerHTML = '<option value="">Failed to load users</option>';
+                });
         });
 
         // Grant premium button in modal
         document.getElementById('grantPremiumBtn')?.addEventListener('click', function() {
-            const userId = document.getElementById('selectedUserId').value;
+            const userId = document.getElementById('userSelect').value;
             const durationMonths = parseInt(document.getElementById('premiumDuration').value);
 
             if (!userId) {
@@ -1424,7 +1397,10 @@
                 return;
             }
 
-            if (confirm(`Grant ${durationMonths} months of premium access to this user?`)) {
+            const selectedOption = document.getElementById('userSelect').selectedOptions[0];
+            const username = selectedOption ? selectedOption.textContent.split('|')[0].trim() : 'this user';
+
+            if (confirm(`Grant ${durationMonths} months of premium access to ${username}?`)) {
                 fetch(`/admin/api/users/${userId}/grant-premium`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1434,8 +1410,7 @@
                 .then(result => {
                     showAlert('success', result.message || 'Premium access granted');
                     bootstrap.Modal.getInstance(document.getElementById('grantPremiumModal')).hide();
-                    document.getElementById('selectedUserId').value = '';
-                    document.getElementById('selectedUserDisplay').value = '';
+                    document.getElementById('userSelect').value = '';
                     loadSubscriptionsTab();
                 })
                 .catch(err => {
