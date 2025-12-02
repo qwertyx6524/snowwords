@@ -80,6 +80,16 @@
     <div class="header">
       <h1>🧩 Crossword Puzzle</h1>
       <p>Challenge yourself with words from your vocabulary snowball!</p>
+      <% if (user.subscriptionStatus !== 'premium') { %>
+        <p style="font-size:0.9rem;color:var(--slate-700);margin-top:0.5rem">
+          ⏰ Free users: <strong>1 crossword per day</strong> •
+          <a href="/subscription/plans" style="color:var(--frost-blue);text-decoration:none;font-weight:600">Upgrade to Premium</a> for unlimited puzzles!
+        </p>
+      <% } else { %>
+        <p style="font-size:0.9rem;color:var(--frost-blue);margin-top:0.5rem;font-weight:600">
+          ⭐ Premium: Unlimited crosswords!
+        </p>
+      <% } %>
     </div>
 
     <div id="loading" class="loading">
@@ -94,6 +104,16 @@
       <div style="margin-top:2rem">
         <a href="/chat" class="btn btn-primary" style="margin-right:1rem">Chat with AI to Add Words</a>
         <a href="/vocab" class="btn btn-secondary">View Your Vocabulary</a>
+      </div>
+    </div>
+
+    <div id="daily-limit-reached" class="error" style="display:none">
+      <h3>⏰ Daily Limit Reached</h3>
+      <p>You've already played today's crossword puzzle!</p>
+      <p style="margin-top:1rem">Free users get <strong>1 crossword per day</strong>. Come back tomorrow for a new puzzle, or upgrade to Premium for unlimited crosswords!</p>
+      <div style="margin-top:2rem">
+        <a href="/subscription/plans" class="btn btn-primary" style="margin-right:1rem">⭐ Upgrade to Premium</a>
+        <a href="/activities" class="btn btn-secondary">Back to Activities</a>
       </div>
     </div>
 
@@ -154,6 +174,11 @@
                 document.getElementById('word-count').textContent=count||0;
               }
             }catch{}
+            return;
+          }
+          if(r.status === 429 || data.limitReached){
+            document.getElementById('loading').style.display='none';
+            document.getElementById('daily-limit-reached').style.display='block';
             return;
           }
           throw new Error('Failed to generate crossword');

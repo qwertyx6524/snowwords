@@ -90,36 +90,63 @@ router.post('/goals', async (req, res) => {
   }
 });
 
-// Premium Crossword Puzzle Generation
+// Crossword Puzzle Generation (Free: 1/day, Premium: unlimited)
 router.post('/crossword/generate', async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log('Generating crossword for user:', userId);
-    
+    const isPremium = req.user.subscriptionStatus === 'premium';
+    console.log('Generating crossword for user:', userId, 'Premium:', isPremium);
+
+    // Check daily limit for free users
+    if (!isPremium) {
+      const userResult = await db.query(
+        'SELECT "lastCrosswordDate" FROM users WHERE id = $1',
+        [userId]
+      );
+
+      const lastCrosswordDate = userResult.rows[0]?.lastCrosswordDate;
+      const today = new Date().toDateString();
+
+      if (lastCrosswordDate && new Date(lastCrosswordDate).toDateString() === today) {
+        return res.status(429).json({
+          error: 'Daily crossword limit reached. Premium users get unlimited crosswords!',
+          limitReached: true
+        });
+      }
+    }
+
     // Get user's vocabulary words
     const vocabResult = await db.query(`
       SELECT word, definition
-      FROM vocabulary 
-      WHERE userId = $1 
+      FROM vocabulary
+      WHERE userId = $1
       AND LENGTH(word) >= 3
-      ORDER BY RANDOM() 
+      ORDER BY RANDOM()
       LIMIT 15
     `, [userId]);
-    
+
     console.log('Retrieved vocabulary count:', vocabResult.rows.length);
-    
+
     if (vocabResult.rows.length < 5) {
-      return res.status(400).json({ 
-        error: 'You need at least 5 words in your vocabulary to generate a crossword puzzle' 
+      return res.status(400).json({
+        error: 'You need at least 5 words in your vocabulary to generate a crossword puzzle'
       });
     }
-    
+
     const words = vocabResult.rows;
     console.log('Generating crossword with words:', words.map(w => w.word));
-    
+
     const crossword = generateCrossword(words);
     console.log('Crossword generated successfully');
-    
+
+    // Update last crossword date for free users
+    if (!isPremium) {
+      await db.query(
+        'UPDATE users SET "lastCrosswordDate" = NOW() WHERE id = $1',
+        [userId]
+      );
+    }
+
     res.json(crossword);
   } catch (error) {
     console.error('Crossword generation error:', error);

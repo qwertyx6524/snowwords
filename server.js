@@ -2528,10 +2528,9 @@ app.get('/api/admin/performance', ensureAdmin, async (req, res) => {
   }
 });
 
-// Premium Activities – Crossword
+// Crossword Activity (Free: 1/day, Premium: unlimited)
 app.get('/premium/crossword',
   ensureAuthenticated,
-  ensurePremium,
   (req, res) => {
     res.render('premium/crossword', { user: req.user, csrfToken: req.csrfToken() });
   }
