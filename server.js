@@ -2419,89 +2419,11 @@ app.get('/premium/crossword',
   ensureAuthenticated,
   ensurePremium,
   (req, res) => {
-    res.render('crossword', { user: req.user });
+    res.render('premium/crossword', { user: req.user, csrfToken: req.csrfToken() });
   }
 );
 
-// Count endpoint already exists; keep it (used by EJS when not enough words). :contentReference[oaicite:6]{index=6}
-
-// Build a personalized crossword from the user's vocabulary (premium-only)
-app.post('/api/premium/crossword/generate', ensureAuthenticated, ensurePremium, async (req, res) => {
-  try {
-    const { rows } = await db.query(
-      `SELECT word, COALESCE(NULLIF(TRIM(definition), ''), 'Your vocabulary word') AS definition
-       FROM vocabulary
-       WHERE "userId" = $1
-       ORDER BY "dateAdded" DESC
-       LIMIT 12`,
-      [req.user.id]
-    );
-
-    if (!rows || rows.length < 5) {
-      return res.status(400).json({ error: 'You need at least 5 words to generate a puzzle' });
-    }
-
-    // Prepare word list
-    const words = rows.map((r, i) => ({
-      number: i + 1,
-      answer: (r.word || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12) || `WORD${i+1}`,
-      clue: r.definition
-    })).filter(w => w.answer.length >= 2);
-
-    const mid    = Math.ceil(words.length / 2);
-    const across = words.slice(0, mid);
-    const down   = words.slice(mid);
-
-    // Grid size heuristic
-    const size = Math.max(
-      10,
-      Math.max(...across.map(w => w.answer.length), 0) + 2,
-      down.length + 2
-    );
-
-    // Initialize grid with '#'
-    const grid = Array.from({ length: size }, () => Array(size).fill('#'));
-
-    let n = 1;
-
-    // Place across on even rows
-    across.forEach((w, idx) => {
-      const r = Math.min(idx * 2, size - 1);
-      for (let c = 0; c < w.answer.length && c < size; c++) {
-        const cell = grid[r][c] === '#' ? {} : grid[r][c];
-        if (c === 0) cell.number = n;
-        cell.across = n;
-        grid[r][c] = cell;
-      }
-      w.number = n++;
-    });
-
-    // Place down in columns from mid to right
-    const baseCol = Math.min(Math.ceil(size / 2), size - 1);
-    down.forEach((w, idx) => {
-      const col = Math.min(baseCol + idx, size - 1);
-      for (let r = 0; r < w.answer.length && r < size; r++) {
-        const cell = grid[r][col] === '#' ? {} : grid[r][col];
-        if (r === 0) cell.number = n;
-        cell.down = n;
-        grid[r][col] = cell;
-      }
-      w.number = n++;
-    });
-
-    res.json({
-      size,
-      grid,
-      clues: {
-        across: across.map(w => ({ number: w.number, clue: w.clue, answer: w.answer })),
-        down:   down.map(w   => ({ number: w.number, clue: w.clue, answer: w.answer }))
-      }
-    });
-  } catch (e) {
-    console.error('Crossword generate error:', e);
-    res.status(500).json({ error: 'Failed to generate crossword' });
-  }
-});
+// Crossword generation is now handled by premiumRoutes.js which has better intersection logic
 
 
 
