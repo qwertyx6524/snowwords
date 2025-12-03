@@ -2172,18 +2172,23 @@ app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
 // Admin API: Grant premium to user
 app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res) => {
   try {
+    console.log('[Grant Premium] Request for user:', req.params.userId, 'Body:', req.body);
     const userId = parseInt(req.params.userId);
     const { planId, durationMonths = 12 } = req.body;
 
     // Check if user exists
+    console.log('[Grant Premium] Checking if user exists...');
     const userResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
     if (userResult.rows.length === 0) {
+      console.log('[Grant Premium] User not found');
       return res.status(404).json({ error: 'User not found' });
     }
+    console.log('[Grant Premium] User found:', userResult.rows[0].username);
 
     // Get plan or use first available plan
     let selectedPlanId = planId;
     if (!selectedPlanId) {
+      console.log('[Grant Premium] No planId provided, finding first active plan...');
       const planResult = await db.query(`
         SELECT id FROM subscription_plans
         WHERE is_active = true
@@ -2191,15 +2196,18 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
         LIMIT 1
       `);
       if (planResult.rows.length === 0) {
+        console.log('[Grant Premium] No active plans found');
         return res.status(400).json({ error: 'No active subscription plans available' });
       }
       selectedPlanId = planResult.rows[0].id;
+      console.log('[Grant Premium] Using plan:', selectedPlanId);
     }
 
     // Calculate dates
     const now = new Date();
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + durationMonths);
+    console.log('[Grant Premium] Creating subscription from', now, 'to', endDate);
 
     // Create subscription
     await db.query(`
@@ -2216,18 +2224,27 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
       'admin-grant',
       'admin-grant-' + Date.now()
     ]);
+    console.log('[Grant Premium] Subscription created successfully');
 
-    // Update user subscription status
-    await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['premium', userId]);
+    // Try to update user subscription status (optional, may not exist)
+    try {
+      console.log('[Grant Premium] Attempting to update subscriptionStatus column...');
+      await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['premium', userId]);
+      console.log('[Grant Premium] subscriptionStatus updated');
+    } catch (statusError) {
+      console.log('[Grant Premium] subscriptionStatus column may not exist, skipping:', statusError.message);
+      // Column might not exist, that's ok - subscription record is what matters
+    }
 
+    console.log('[Grant Premium] Success!');
     res.json({
       success: true,
       message: 'Premium access granted successfully',
       endDate: endDate.toISOString()
     });
   } catch (e) {
-    console.error('grant premium error', e);
-    res.status(500).json({ error: 'Failed to grant premium access' });
+    console.error('[Grant Premium] Error:', e.message, e.stack);
+    res.status(500).json({ error: e.message || 'Failed to grant premium access' });
   }
 });
 
