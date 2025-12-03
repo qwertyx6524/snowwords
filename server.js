@@ -1474,46 +1474,57 @@ app.get('/admin/api/stats', ensureAdmin, async (req, res) => {
 // Admin API: Get all users
 app.get('/admin/api/users', ensureAdmin, async (req, res) => {
   try {
+    console.log('[Admin API] Fetching users, query params:', req.query);
     const searchQuery = req.query.search;
-    const simple = req.query.simple === 'true'; // Skip heavy stats if simple=true
+    const simple = req.query.simple === 'true';
 
     // Get all users - basic query
-    let query = `
-      SELECT
-        u.id,
-        u.email,
-        u.username
-      FROM users u
-    `;
-
+    let query = `SELECT id, email, username FROM users`;
     const params = [];
+
     if (searchQuery) {
-      query += ` WHERE (u.username ILIKE $1 OR u.email ILIKE $1)`;
+      query += ` WHERE (username ILIKE $1 OR email ILIKE $1)`;
       params.push(`%${searchQuery}%`);
     }
 
-    query += ` ORDER BY u.id DESC`;
+    query += ` ORDER BY id DESC`;
 
     if (searchQuery) {
       query += ` LIMIT 20`;
     }
 
+    console.log('[Admin API] Executing query:', query);
     const usersResult = await db.query(query, params);
-
     const users = usersResult.rows;
+    console.log('[Admin API] Found users:', users.length);
 
     // If searching or simple mode, add subscription status and return
     if (searchQuery || simple) {
-      // Add subscription status for each user
+      console.log('[Admin API] Simple mode, adding subscription status');
+      // Add subscription status for each user - with error handling
       for (const user of users) {
-        // Check if user has active subscription
-        const subResult = await db.query(`
-          SELECT COUNT(*) as count
-          FROM subscriptions
-          WHERE "userId" = $1 AND status = 'active'
-        `, [user.id]);
-        user.subscriptionStatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
+        try {
+          // Try different column name variations
+          let subResult;
+          try {
+            subResult = await db.query(`
+              SELECT COUNT(*) as count FROM subscriptions
+              WHERE "userId" = $1 AND status = 'active'
+            `, [user.id]);
+          } catch (e1) {
+            console.log('[Admin API] Trying userid without quotes');
+            subResult = await db.query(`
+              SELECT COUNT(*) as count FROM subscriptions
+              WHERE userid = $1 AND status = 'active'
+            `, [user.id]);
+          }
+          user.subscriptionStatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
+        } catch (subError) {
+          console.error('[Admin API] Error checking subscription for user', user.id, subError.message);
+          user.subscriptionStatus = 'free'; // Default to free if error
+        }
       }
+      console.log('[Admin API] Returning users with status');
       return res.json(users);
     }
 
