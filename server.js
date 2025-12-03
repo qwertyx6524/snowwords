@@ -1559,6 +1559,28 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
   }
 });
 
+// Admin API: Test endpoint to verify database connectivity
+app.get('/admin/api/test-users', ensureAdmin, async (req, res) => {
+  try {
+    console.log('[Test] Testing database connection...');
+    const result = await db.query('SELECT COUNT(*) as count FROM users');
+    const count = result.rows[0].count;
+    console.log('[Test] User count:', count);
+
+    const sample = await db.query('SELECT id, email, username FROM users LIMIT 3');
+    console.log('[Test] Sample users:', sample.rows);
+
+    res.json({
+      success: true,
+      userCount: count,
+      sampleUsers: sample.rows
+    });
+  } catch (err) {
+    console.error('[Test] Error:', err);
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 // Admin API: Get user details
 app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
   try {
