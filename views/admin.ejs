@@ -1364,7 +1364,7 @@
             const select = document.getElementById('userSelect');
             select.innerHTML = '<option value="">Loading users...</option>';
 
-            fetch('/admin/api/users')
+            fetch('/admin/api/users?simple=true')
                 .then(r => r.ok ? r.json() : Promise.reject(r))
                 .then(users => {
                     select.innerHTML = '<option value="">-- Select a user --</option>';

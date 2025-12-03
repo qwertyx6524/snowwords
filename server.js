@@ -1475,6 +1475,7 @@ app.get('/admin/api/stats', ensureAdmin, async (req, res) => {
 app.get('/admin/api/users', ensureAdmin, async (req, res) => {
   try {
     const searchQuery = req.query.search;
+    const simple = req.query.simple === 'true'; // Skip heavy stats if simple=true
 
     // Get all users with their vocabulary and message counts
     let query = `
@@ -1505,12 +1506,12 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 
     const users = usersResult.rows;
 
-    // If searching, return simple results without stats
-    if (searchQuery) {
+    // If searching or simple mode, return results without stats
+    if (searchQuery || simple) {
       return res.json(users);
     }
 
-    // For each user, get additional stats (only when not searching)
+    // For each user, get additional stats (only when not searching and not simple mode)
     for (const user of users) {
       // Get vocabulary count
       const vocabCountResult = await db.query(`
