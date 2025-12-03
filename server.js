@@ -1477,16 +1477,12 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
     const searchQuery = req.query.search;
     const simple = req.query.simple === 'true'; // Skip heavy stats if simple=true
 
-    // Get all users with their vocabulary and message counts
+    // Get all users - basic query
     let query = `
       SELECT
         u.id,
         u.email,
-        u.username,
-        u.googleId        AS "googleId",
-        u.englishLevel    AS "englishLevel",
-        u.learningGoals   AS "learningGoals",
-        u."subscriptionStatus" AS "subscriptionStatus"
+        u.username
       FROM users u
     `;
 
@@ -1506,8 +1502,18 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 
     const users = usersResult.rows;
 
-    // If searching or simple mode, return results without stats
+    // If searching or simple mode, add subscription status and return
     if (searchQuery || simple) {
+      // Add subscription status for each user
+      for (const user of users) {
+        // Check if user has active subscription
+        const subResult = await db.query(`
+          SELECT COUNT(*) as count
+          FROM subscriptions
+          WHERE "userId" = $1 AND status = 'active'
+        `, [user.id]);
+        user.subscriptionStatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
+      }
       return res.json(users);
     }
 
