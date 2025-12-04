@@ -2252,6 +2252,21 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
   }
 });
 
+// Admin API: Debug endpoint to check subscription plans
+app.get('/admin/api/debug/plans', ensureAdmin, async (req, res) => {
+  try {
+    const plans = await db.query('SELECT * FROM subscription_plans ORDER BY id');
+    const activePlans = await db.query('SELECT * FROM subscription_plans WHERE is_active = true ORDER BY id');
+    res.json({
+      allPlans: plans.rows,
+      activePlans: activePlans.rows,
+      hasActivePlans: activePlans.rows.length > 0
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Admin API: Revoke premium from user
 app.post('/admin/api/users/:userId/revoke-premium', ensureAdmin, async (req, res) => {
   try {
