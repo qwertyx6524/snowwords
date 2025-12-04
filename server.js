@@ -231,6 +231,10 @@ const ensureAdmin = (req, res, next) => {
   if (req.session.isAdmin) {
     return next();
   } else {
+    // For API requests, return JSON instead of redirect
+    if (req.path.startsWith('/admin/api')) {
+      return res.status(401).json({ error: 'Unauthorized. Please log in as admin.' });
+    }
     res.redirect('/admin/login');
   }
 };

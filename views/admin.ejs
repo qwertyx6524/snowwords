@@ -1406,7 +1406,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ durationMonths })
                 })
-                .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+                .then(async r => {
+                    const text = await r.text();
+                    if (!r.ok) {
+                        try {
+                            const json = JSON.parse(text);
+                            throw json;
+                        } catch (e) {
+                            if (e.error) throw e; // Already JSON error object
+                            throw { error: `Server error (${r.status}): ${text.substring(0, 200)}` };
+                        }
+                    }
+                    return JSON.parse(text);
+                })
                 .then(result => {
                     showAlert('success', result.message || 'Premium access granted');
                     bootstrap.Modal.getInstance(document.getElementById('grantPremiumModal')).hide();
@@ -1415,7 +1427,8 @@
                 })
                 .catch(err => {
                     console.error('Grant premium error', err);
-                    showAlert('error', err.error || 'Failed to grant premium access');
+                    const errorMsg = err.error || err.message || 'Failed to grant premium access. Please check if the server is running.';
+                    showAlert('error', errorMsg);
                 });
             }
         });
@@ -1429,14 +1442,27 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ durationMonths })
                 })
-                .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+                .then(async r => {
+                    const text = await r.text();
+                    if (!r.ok) {
+                        try {
+                            const json = JSON.parse(text);
+                            throw json;
+                        } catch (e) {
+                            if (e.error) throw e; // Already JSON error object
+                            throw { error: `Server error (${r.status}): ${text.substring(0, 200)}` };
+                        }
+                    }
+                    return JSON.parse(text);
+                })
                 .then(result => {
                     showAlert('success', result.message || 'Premium access granted');
                     loadSubscriptionsTab();
                 })
                 .catch(err => {
                     console.error('Grant premium error', err);
-                    showAlert('error', err.error || 'Failed to grant premium access');
+                    const errorMsg = err.error || err.message || 'Failed to grant premium access. Please check if the server is running.';
+                    showAlert('error', errorMsg);
                 });
             }
         };
