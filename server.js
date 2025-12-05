@@ -2050,23 +2050,23 @@ app.get('/admin/api/subscriptions', ensureAdmin, async (req, res) => {
     const r = await db.query(`
       SELECT
         s.id,
-        s."userId",
+        s.userid AS "userId",
         u.username,
         u.email,
-        s."planId",
+        s.planid AS "planId",
         p.name AS "planName",
         COALESCE(p.price, 0)::float AS price,
         p.billing_interval AS "billingInterval",
         COALESCE(s.status, 'unknown') AS status,
-        s."startDate",
-        s."endDate" AS "currentPeriodEnd",
-        COALESCE(s."cancelAtPeriodEnd", false) AS "cancelAtPeriodEnd",
-        s."stripeCustomerId",
-        s."stripeSubscriptionId"
+        s.startdate AS "startDate",
+        s.enddate AS "currentPeriodEnd",
+        COALESCE(s.cancelatperiodend, false) AS "cancelAtPeriodEnd",
+        s.stripecustomerid AS "stripeCustomerId",
+        s.stripesubscriptionid AS "stripeSubscriptionId"
       FROM subscriptions s
-      LEFT JOIN users u ON u.id = s."userId"
-      LEFT JOIN subscription_plans p ON p.id = s."planId"
-      ORDER BY s."startDate" DESC NULLS LAST, s.id DESC
+      LEFT JOIN users u ON u.id = s.userid
+      LEFT JOIN subscription_plans p ON p.id = s.planid
+      ORDER BY s.startdate DESC NULLS LAST, s.id DESC
       LIMIT 500
     `);
     res.json(r.rows || []);
@@ -2086,14 +2086,14 @@ app.get('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
         u.username,
         u.email,
         p.name AS "planName",
-        COALESCE(p.price, s.price, 0)::float AS price,
-        COALESCE(p.billing_interval, p."billingInterval", s.billing_interval, s."billingInterval", 'month') AS "billingInterval",
-        COALESCE(s.currentPeriodEnd, s.endDate) AS "currentPeriodEnd",
-        COALESCE(s.stripeCustomerId, s."customerId") AS "stripeCustomerId",
-        COALESCE(s.stripeSubscriptionId, s."subscriptionId") AS "stripeSubscriptionId"
+        COALESCE(p.price, 0)::float AS price,
+        COALESCE(p.billing_interval, 'monthly') AS "billingInterval",
+        s.enddate AS "currentPeriodEnd",
+        s.stripecustomerid AS "stripeCustomerId",
+        s.stripesubscriptionid AS "stripeSubscriptionId"
       FROM subscriptions s
-      LEFT JOIN users u ON u.id = s.userId
-      LEFT JOIN subscription_plans p ON p.id = s.planId
+      LEFT JOIN users u ON u.id = s.userid
+      LEFT JOIN subscription_plans p ON p.id = s.planid
       WHERE s.id = $1
     `, [req.params.id]);
     if (!r.rows[0]) return res.status(404).json({ error: 'Not found' });
@@ -2111,7 +2111,7 @@ app.put('/admin/api/subscriptions/:id', ensureAdmin, async (req, res) => {
     await db.query(`
       UPDATE subscriptions
       SET status = COALESCE($1, status),
-          "cancelAtPeriodEnd" = COALESCE($2, "cancelAtPeriodEnd")
+          cancelatperiodend = COALESCE($2, cancelatperiodend)
       WHERE id = $3
     `, [status || null, (typeof cancelAtPeriodEnd === 'boolean') ? cancelAtPeriodEnd : null, req.params.id]);
     res.json({ success: true });
@@ -2133,9 +2133,9 @@ app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
                ELSE p.price::float END
         ), 0)::float AS mrr
       FROM subscriptions s
-      LEFT JOIN subscription_plans p ON p.id = s."planId"
+      LEFT JOIN subscription_plans p ON p.id = s.planid
       WHERE COALESCE(s.status, 'unknown') = 'active'
-        AND (COALESCE(s."cancelAtPeriodEnd", false) = false OR COALESCE(s."endDate", NOW() + INTERVAL '1 day') > NOW())
+        AND (COALESCE(s.cancelatperiodend, false) = false OR COALESCE(s.enddate, NOW() + INTERVAL '1 day') > NOW())
     `);
 
     // Churn in last 30 days (conservative if DB empty)
@@ -2143,23 +2143,23 @@ app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
       SELECT COUNT(*)::int AS c
       FROM subscriptions
       WHERE COALESCE(status,'unknown') IN ('canceled','expired')
-        AND ( ("dateUpdated" IS NOT NULL AND "dateUpdated" >= NOW() - INTERVAL '30 days')
-           OR ("endDate"     IS NOT NULL AND "endDate"     >= NOW() - INTERVAL '30 days') )
+        AND ( (dateupdated IS NOT NULL AND dateupdated >= NOW() - INTERVAL '30 days')
+           OR (enddate     IS NOT NULL AND enddate     >= NOW() - INTERVAL '30 days') )
     `);
     const cohortRes = await db.query(`
       SELECT COUNT(*)::int AS c
       FROM subscriptions
-      WHERE "startDate" <= NOW() - INTERVAL '30 days'
+      WHERE startdate <= NOW() - INTERVAL '30 days'
         AND COALESCE(status,'unknown') = 'active'
     `);
     const churn30 = cohortRes.rows[0].c ? Math.round((churnNumRes.rows[0].c / cohortRes.rows[0].c) * 100) : 0;
 
     // Active by plan
     const byPlanRes = await db.query(`
-      SELECT s."planId", COUNT(*)::int AS count
+      SELECT s.planid AS "planId", COUNT(*)::int AS count
       FROM subscriptions s
       WHERE COALESCE(s.status,'unknown') = 'active'
-      GROUP BY s."planId"
+      GROUP BY s.planid
     `);
     const byPlan = {};
     byPlanRes.rows.forEach(r => { byPlan[r.planId] = { count: r.count }; });
