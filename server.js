@@ -1284,7 +1284,7 @@ app.get('/admin/logout', (req, res) => {
 
 // Admin dashboard page
 app.get('/admin', ensureAdmin, (req, res) => {
-  res.render('admin');
+  res.render('admin', { csrfToken: req.csrfToken() });
 });
 
 // Admin API: Get system stats
