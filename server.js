@@ -2199,12 +2199,13 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
         ORDER BY price ASC
         LIMIT 1
       `);
-      if (planResult.rows.length === 0) {
-        console.log('[Grant Premium] No active plans found');
-        return res.status(400).json({ error: 'No active subscription plans available' });
+      if (planResult.rows.length > 0) {
+        selectedPlanId = planResult.rows[0].id;
+        console.log('[Grant Premium] Using plan:', selectedPlanId);
+      } else {
+        console.log('[Grant Premium] No active plans found, using plan ID 2 (Premium Monthly) as fallback');
+        selectedPlanId = 2; // Fallback to Premium Monthly plan
       }
-      selectedPlanId = planResult.rows[0].id;
-      console.log('[Grant Premium] Using plan:', selectedPlanId);
     }
 
     // Calculate dates

@@ -167,16 +167,17 @@ const initializeDatabase = async () => {
 
     // Insert subscription plans with correct pricing
     await db.query(`
-      INSERT INTO subscription_plans (id, name, description, price, billing_interval, features) VALUES
-      (1, 'Free', 'Basic vocabulary learning with limited features', 0, 'monthly', '["Basic AI conversation (20 messages/day)", "2 tests per day", "Basic games", "Unlimited vocabulary storage"]'),
-      (2, 'Premium Monthly', 'Full access to all features with monthly billing', 4.99, 'monthly', '["Unlimited AI conversation", "Unlimited tests", "All games & activities", "Pronunciation practice", "Offline mode", "Email support"]'),
-      (3, 'Premium Yearly', 'Full access to all features with yearly billing (save 16%)', 49.99, 'yearly', '["Unlimited AI conversation", "Unlimited tests", "All games & activities", "Pronunciation practice", "Offline mode", "Priority support"]')
+      INSERT INTO subscription_plans (id, name, description, price, billing_interval, features, is_active) VALUES
+      (1, 'Free', 'Basic vocabulary learning with limited features', 0, 'monthly', '["Basic AI conversation (20 messages/day)", "2 tests per day", "Basic games", "Unlimited vocabulary storage"]', true),
+      (2, 'Premium Monthly', 'Full access to all features with monthly billing', 4.99, 'monthly', '["Unlimited AI conversation", "Unlimited tests", "All games & activities", "Pronunciation practice", "Offline mode", "Email support"]', true),
+      (3, 'Premium Yearly', 'Full access to all features with yearly billing (save 16%)', 49.99, 'yearly', '["Unlimited AI conversation", "Unlimited tests", "All games & activities", "Pronunciation practice", "Offline mode", "Priority support"]', true)
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         description = EXCLUDED.description,
         price = EXCLUDED.price,
         billing_interval = EXCLUDED.billing_interval,
-        features = EXCLUDED.features
+        features = EXCLUDED.features,
+        is_active = EXCLUDED.is_active
     `);
 
     // Create indexes for performance
