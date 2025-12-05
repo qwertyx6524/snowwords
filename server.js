@@ -882,23 +882,23 @@ app.get('/profile', ensureAuthenticated, async (req, res) => {
     
     // Get all vocabulary (for preview) and count total words
     const vocabResult = await db.query(`
-      SELECT word FROM vocabulary 
-      WHERE userId = $1 
-      ORDER BY dateAdded DESC 
+      SELECT word FROM vocabulary
+      WHERE userid = $1
+      ORDER BY dateadded DESC
       LIMIT 15
     `, [user.id]);
     const vocab = vocabResult.rows;
 
     const vocabCountResult = await db.query(`
-      SELECT COUNT(*) as count FROM vocabulary 
-      WHERE userId = $1
+      SELECT COUNT(*) as count FROM vocabulary
+      WHERE userid = $1
     `, [user.id]);
     const vocabCount = parseInt(vocabCountResult.rows[0].count);
-    
-    // Count learned words (correctCount >= 5)
+
+    // Count learned words (correctcount >= 5)
     const learnedResult = await db.query(`
-      SELECT COUNT(*) as count FROM vocabulary 
-      WHERE userId = $1 AND correctCount >= 5
+      SELECT COUNT(*) as count FROM vocabulary
+      WHERE userid = $1 AND correctcount >= 5
     `, [user.id]);
     const learnedCount = parseInt(learnedResult.rows[0].count);
 
@@ -915,10 +915,10 @@ app.get('/profile', ensureAuthenticated, async (req, res) => {
 
     // Get user's active subscription if any
     const subscriptionResult = await db.query(`
-      SELECT s.*, p.name as planName, p.price, p.billing_interval 
+      SELECT s.*, p.name as planName, p.price, p.billing_interval
       FROM subscriptions s
-      JOIN subscription_plans p ON s.planId = p.id
-      WHERE s.userId = $1 AND s.status = 'active'
+      JOIN subscription_plans p ON s.planid = p.id
+      WHERE s.userid = $1 AND s.status = 'active'
       ORDER BY s.id DESC LIMIT 1
     `, [user.id]);
     const subscription = subscriptionResult.rows[0] || null;
@@ -2282,12 +2282,12 @@ app.post('/admin/api/users/:userId/revoke-premium', ensureAdmin, async (req, res
     // Update all active subscriptions to canceled
     await db.query(`
       UPDATE subscriptions
-      SET status = 'canceled', "endDate" = NOW()
-      WHERE "userId" = $1 AND status = 'active'
+      SET status = 'canceled', enddate = NOW()
+      WHERE userid = $1 AND status = 'active'
     `, [userId]);
 
     // Update user subscription status to free
-    await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['free', userId]);
+    await db.query('UPDATE users SET subscriptionstatus = $1 WHERE id = $2', ['free', userId]);
 
     res.json({
       success: true,
@@ -2517,13 +2517,13 @@ async function handleInvoicePaid(invoice) {
     }
     
     await db.query(`
-      UPDATE subscriptions 
-      SET endDate = $1, status = 'active'
+      UPDATE subscriptions
+      SET enddate = $1, status = 'active'
       WHERE id = $2
     `, [endDate.toISOString(), subscription.id]);
-    
+
     // Ensure user status is premium
-    await db.query('UPDATE users SET subscriptionStatus = $1 WHERE id = $2', ['premium', subscription.userid]);
+    await db.query('UPDATE users SET subscriptionstatus = $1 WHERE id = $2', ['premium', subscription.userid]);
   } catch (error) {
     console.error('Error handling invoice payment:', error);
   }
