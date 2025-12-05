@@ -30,24 +30,24 @@ const initializeDatabase = async () => {
     await db.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
-        userId INTEGER,
+        userid INTEGER,
         role TEXT,
         content TEXT,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS vocabulary (
         id SERIAL PRIMARY KEY,
-        userId INTEGER,
+        userid INTEGER,
         word TEXT,
         definition TEXT,
-        dateAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        correctCount INTEGER DEFAULT 0,
-        difficultyLevel INTEGER DEFAULT 1,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        dateadded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        correctcount INTEGER DEFAULT 0,
+        difficultylevel INTEGER DEFAULT 1,
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
@@ -58,10 +58,10 @@ const initializeDatabase = async () => {
         email TEXT NOT NULL,
         subject TEXT NOT NULL,
         message TEXT NOT NULL,
-        userId INTEGER,
+        userid INTEGER,
         status TEXT DEFAULT 'new',
-        dateSubmitted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        datesubmitted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
@@ -74,87 +74,87 @@ const initializeDatabase = async () => {
         billing_interval TEXT NOT NULL, -- 'monthly' or 'yearly'
         features TEXT NOT NULL, -- JSON string of features
         is_active BOOLEAN DEFAULT true,
-        stripePriceId TEXT,
-        dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        stripepriceid TEXT,
+        datecreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS subscriptions (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
-        planId INTEGER NOT NULL,
+        userid INTEGER NOT NULL,
+        planid INTEGER NOT NULL,
         status TEXT NOT NULL, -- 'active', 'canceled', 'expired'
-        startDate TIMESTAMP NOT NULL,
-        endDate TIMESTAMP,
-        stripeCustomerId TEXT,
-        stripeSubscriptionId TEXT,
-        cancelAtPeriodEnd BOOLEAN DEFAULT false,
-        dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        dateUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id),
-        FOREIGN KEY (planId) REFERENCES subscription_plans(id)
+        startdate TIMESTAMP NOT NULL,
+        enddate TIMESTAMP,
+        stripecustomerid TEXT,
+        stripesubscriptionid TEXT,
+        cancelatperiodend BOOLEAN DEFAULT false,
+        datecreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        dateupdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userid) REFERENCES users(id),
+        FOREIGN KEY (planid) REFERENCES subscription_plans(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS payment_history (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
-        subscriptionId INTEGER NOT NULL,
+        userid INTEGER NOT NULL,
+        subscriptionid INTEGER NOT NULL,
         amount DECIMAL(10,2) NOT NULL,
         currency TEXT NOT NULL DEFAULT 'USD',
         status TEXT NOT NULL, -- 'succeeded', 'failed', 'pending'
-        stripePaymentIntentId TEXT,
-        stripeInvoiceId TEXT,
-        dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id),
-        FOREIGN KEY (subscriptionId) REFERENCES subscriptions(id)
+        stripepaymentintentid TEXT,
+        stripeinvoiceid TEXT,
+        datecreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userid) REFERENCES users(id),
+        FOREIGN KEY (subscriptionid) REFERENCES subscriptions(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS tests_taken (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
+        userid INTEGER NOT NULL,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         score INTEGER,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS pronunciation_practice (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
+        userid INTEGER NOT NULL,
         word TEXT NOT NULL,
         score INTEGER NOT NULL,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS study_reminders (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
+        userid INTEGER NOT NULL,
         time TEXT NOT NULL,
         frequency TEXT NOT NULL,
         enabled BOOLEAN DEFAULT true,
-        dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        datecreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS study_goals (
         id SERIAL PRIMARY KEY,
-        userId INTEGER NOT NULL,
-        dailyWords INTEGER DEFAULT 10,
-        weeklyHours INTEGER DEFAULT 5,
-        targetDate DATE,
-        dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id)
+        userid INTEGER NOT NULL,
+        dailywords INTEGER DEFAULT 10,
+        weeklyhours INTEGER DEFAULT 5,
+        targetdate DATE,
+        datecreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userid) REFERENCES users(id)
       )
     `);
 

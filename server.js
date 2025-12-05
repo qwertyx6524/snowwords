@@ -272,7 +272,7 @@ app.get('/api/extension/auth-status', (req, res) => {
 // Get vocabulary count (for extension badge)
 app.get('/api/extension/vocab-count', ensureAuthenticated, async (req, res) => {
   try {
-    const result = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1', [req.user.id]);
+    const result = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1', [req.user.id]);
     const count = parseInt(result.rows[0].count) || 0;
     res.json({ count });
   } catch (error) {
@@ -285,11 +285,11 @@ app.get('/api/extension/vocab-count', ensureAuthenticated, async (req, res) => {
 app.get('/api/extension/stats', ensureAuthenticated, async (req, res) => {
   try {
     // Total words
-    const totalResult = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1', [req.user.id]);
+    const totalResult = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1', [req.user.id]);
     const totalWords = parseInt(totalResult.rows[0].count) || 0;
-    
-    // Mastered words (correctCount >= 5)
-    const masteredResult = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1 AND correctCount >= 5', [req.user.id]);
+
+    // Mastered words (correctcount >= 5)
+    const masteredResult = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1 AND correctcount >= 5', [req.user.id]);
     const masteredWords = parseInt(masteredResult.rows[0].count) || 0;
     
     // Current streak (use your existing function)
@@ -301,9 +301,9 @@ app.get('/api/extension/stats', ensureAuthenticated, async (req, res) => {
     weekStart.setHours(0, 0, 0, 0);
     
     const thisWeekResult = await db.query(`
-      SELECT COUNT(*) as count 
-      FROM vocabulary 
-      WHERE userId = $1 AND dateAdded >= $2
+      SELECT COUNT(*) as count
+      FROM vocabulary
+      WHERE userid = $1 AND dateadded >= $2
     `, [req.user.id, weekStart.toISOString()]);
     const wordsThisWeek = parseInt(thisWeekResult.rows[0].count) || 0;
     
@@ -332,7 +332,7 @@ app.post('/api/extension/define-word', ensureAuthenticated, async (req, res) => 
     
     // Check if word already exists
     const existingResult = await db.query(
-      'SELECT definition FROM vocabulary WHERE userId = $1 AND LOWER(word) = $2', 
+      'SELECT definition FROM vocabulary WHERE userid = $1 AND LOWER(word) = $2',
       [req.user.id, cleanWord]
     );
     
@@ -373,7 +373,7 @@ app.post('/api/extension/add-word', ensureAuthenticated, async (req, res) => {
     
     // Check if word already exists
     const existingResult = await db.query(
-      'SELECT id FROM vocabulary WHERE userId = $1 AND LOWER(word) = $2', 
+      'SELECT id FROM vocabulary WHERE userid = $1 AND LOWER(word) = $2',
       [req.user.id, cleanWord.toLowerCase()]
     );
     
@@ -386,7 +386,7 @@ app.post('/api/extension/add-word', ensureAuthenticated, async (req, res) => {
     
     // Add word to vocabulary
     const result = await db.query(`
-      INSERT INTO vocabulary (word, definition, userId, difficultyLevel, dateAdded, correctCount)
+      INSERT INTO vocabulary (word, definition, userid, difficultylevel, dateadded, correctcount)
       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, 0)
       RETURNING id
     `, [cleanWord, cleanDefinition, req.user.id, difficulty]);
@@ -410,10 +410,10 @@ app.get('/api/extension/recent-words', ensureAuthenticated, async (req, res) => 
     const limit = parseInt(req.query.limit) || 10;
     
     const result = await db.query(`
-      SELECT word, definition, difficultyLevel, correctCount, dateAdded
-      FROM vocabulary 
-      WHERE userId = $1
-      ORDER BY dateAdded DESC
+      SELECT word, definition, difficultylevel, correctcount, dateadded
+      FROM vocabulary
+      WHERE userid = $1
+      ORDER BY dateadded DESC
       LIMIT $2
     `, [req.user.id, limit]);
     
@@ -435,9 +435,9 @@ app.get('/api/extension/lookup/:word', ensureAuthenticated, async (req, res) => 
     
     // Check if word exists in user's vocabulary
     const result = await db.query(`
-      SELECT word, definition, difficultyLevel, correctCount, dateAdded
-      FROM vocabulary 
-      WHERE userId = $1 AND LOWER(word) = $2
+      SELECT word, definition, difficultylevel, correctcount, dateadded
+      FROM vocabulary
+      WHERE userid = $1 AND LOWER(word) = $2
     `, [req.user.id, cleanWord]);
     
     if (result.rows.length > 0) {
@@ -515,8 +515,8 @@ async function getWordDefinitionFromAI(word, userLevel) {
 async function getDecoyDefinitions(correctDef, userId) {
   try {
     const result = await db.query(`
-      SELECT definition FROM vocabulary 
-      WHERE userId = $1 AND definition != $2
+      SELECT definition FROM vocabulary
+      WHERE userid = $1 AND definition != $2
     `, [userId, correctDef]);
     
     const allDefs = result.rows.map(v => v.definition);
@@ -542,7 +542,7 @@ async function getCurrentStreak(userId) {
     const result = await db.query(`
       SELECT DATE(timestamp) as date
       FROM messages
-      WHERE userId = $1
+      WHERE userid = $1
       GROUP BY DATE(timestamp)
       ORDER BY date DESC
       LIMIT 30
@@ -575,7 +575,7 @@ async function getCurrentStreak(userId) {
 
 async function getTotalStudyHours(userId) {
   try {
-    const result = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1', [userId]);
+    const result = await db.query('SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1', [userId]);
     return parseFloat((result.rows[0].count * 0.2).toFixed(1));
   } catch (error) {
     console.error('Error getting total study hours:', error);
@@ -585,9 +585,9 @@ async function getTotalStudyHours(userId) {
 
 async function calculateAccuracy(userId) {
   try {
-    const result = await db.query('SELECT correctCount FROM vocabulary WHERE userId = $1', [userId]);
+    const result = await db.query('SELECT correctcount FROM vocabulary WHERE userid = $1', [userId]);
     const rows = result.rows;
-    
+
     if (!rows.length) return 0;
     let total = 0;
     rows.forEach(row => {
@@ -611,10 +611,10 @@ async function getAchievements(userId) {
     testsRes,
     messagesRes
   ] = await Promise.all([
-    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1', [userId]),
-    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1 AND correctCount >= 5', [userId]),
-    db.query('SELECT COUNT(*)::int AS c FROM tests_taken WHERE userId = $1', [userId]),
-    db.query('SELECT COUNT(*)::int AS c FROM messages WHERE userId = $1', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userid = $1', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM vocabulary WHERE userid = $1 AND correctcount >= 5', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM tests_taken WHERE userid = $1', [userId]),
+    db.query('SELECT COUNT(*)::int AS c FROM messages WHERE userid = $1', [userId]),
   ]);
 
   const vocabCount   = vocabCountRes.rows[0].c || 0;
@@ -627,7 +627,7 @@ async function getAchievements(userId) {
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   weekStart.setHours(0, 0, 0, 0);
   const weekRes = await db.query(
-    `SELECT COUNT(*)::int AS c FROM vocabulary WHERE userId = $1 AND dateAdded >= $2`,
+    `SELECT COUNT(*)::int AS c FROM vocabulary WHERE userid = $1 AND dateadded >= $2`,
     [userId, weekStart.toISOString()]
   );
   const wordsThisWeek = weekRes.rows[0].c || 0;
