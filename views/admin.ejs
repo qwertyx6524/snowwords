@@ -1401,23 +1401,33 @@
             const username = selectedOption ? selectedOption.textContent.split('|')[0].trim() : 'this user';
 
             if (confirm(`Grant ${durationMonths} months of premium access to ${username}?`)) {
+                console.log('[v2.0] Starting grant premium request for user:', userId);
                 fetch(`/admin/api/users/${userId}/grant-premium`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ durationMonths })
                 })
                 .then(async r => {
+                    console.log('[v2.0] Response status:', r.status, 'OK:', r.ok);
                     const text = await r.text();
+                    console.log('[v2.0] Response text (first 200 chars):', text.substring(0, 200));
+
                     if (!r.ok) {
+                        // Try to parse as JSON first
                         try {
                             const json = JSON.parse(text);
+                            console.log('[v2.0] Parsed error as JSON:', json);
                             throw json;
                         } catch (e) {
-                            if (e.error) throw e; // Already JSON error object
+                            if (e.error) throw e;
+                            console.log('[v2.0] Could not parse as JSON, throwing text error');
                             throw { error: `Server error (${r.status}): ${text.substring(0, 200)}` };
                         }
                     }
-                    return JSON.parse(text);
+
+                    const result = JSON.parse(text);
+                    console.log('[v2.0] Success result:', result);
+                    return result;
                 })
                 .then(result => {
                     showAlert('success', result.message || 'Premium access granted');
@@ -1426,8 +1436,8 @@
                     loadSubscriptionsTab();
                 })
                 .catch(err => {
-                    console.error('Grant premium error', err);
-                    const errorMsg = err.error || err.message || 'Failed to grant premium access. Please check if the server is running.';
+                    console.error('[v2.0] Final error caught:', err);
+                    const errorMsg = err.error || err.message || 'Failed to grant premium access';
                     showAlert('error', errorMsg);
                 });
             }
