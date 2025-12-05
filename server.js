@@ -2226,8 +2226,8 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
     // Create subscription
     await db.query(`
       INSERT INTO subscriptions (
-        "userId", "planId", status, "startDate", "endDate",
-        "stripeCustomerId", "stripeSubscriptionId"
+        userid, planid, status, startdate, enddate,
+        stripecustomerid, stripesubscriptionid
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
     `, [
       userId,
@@ -2243,7 +2243,7 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
     // Try to update user subscription status (optional, may not exist)
     try {
       console.log('[Grant Premium] Attempting to update subscriptionStatus column...');
-      await db.query('UPDATE users SET "subscriptionStatus" = $1 WHERE id = $2', ['premium', userId]);
+      await db.query('UPDATE users SET subscriptionstatus = $1 WHERE id = $2', ['premium', userId]);
       console.log('[Grant Premium] subscriptionStatus updated');
     } catch (statusError) {
       console.log('[Grant Premium] subscriptionStatus column may not exist, skipping:', statusError.message);
