@@ -1511,20 +1511,11 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
       // Add subscription status for each user - with error handling
       for (const user of users) {
         try {
-          // Try different column name variations
-          let subResult;
-          try {
-            subResult = await db.query(`
-              SELECT COUNT(*) as count FROM subscriptions
-              WHERE "userId" = $1 AND status = 'active'
-            `, [user.id]);
-          } catch (e1) {
-            console.log('[Admin API] Trying userid without quotes');
-            subResult = await db.query(`
-              SELECT COUNT(*) as count FROM subscriptions
-              WHERE userid = $1 AND status = 'active'
-            `, [user.id]);
-          }
+          // Check subscription status
+          const subResult = await db.query(`
+            SELECT COUNT(*) as count FROM subscriptions
+            WHERE userid = $1 AND status = 'active'
+          `, [user.id]);
           user.subscriptionStatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
         } catch (subError) {
           console.error('[Admin API] Error checking subscription for user', user.id, subError.message);
@@ -1539,13 +1530,13 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
     for (const user of users) {
       // Get vocabulary count
       const vocabCountResult = await db.query(`
-        SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1
+        SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1
       `, [user.id]);
       user.vocabCount = parseInt(vocabCountResult.rows[0].count);
 
       // Get learned count (mastered words)
       const learnedCountResult = await db.query(`
-        SELECT COUNT(*) as count FROM vocabulary WHERE userId = $1 AND correctCount >= 5
+        SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1 AND correctcount >= 5
       `, [user.id]);
       const learnedCount = parseInt(learnedCountResult.rows[0].count);
 
@@ -1554,7 +1545,7 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 
       // Get message count
       const messageCountResult = await db.query(`
-        SELECT COUNT(*) as count FROM messages WHERE userId = $1
+        SELECT COUNT(*) as count FROM messages WHERE userid = $1
       `, [user.id]);
       user.messageCount = parseInt(messageCountResult.rows[0].count);
     }
