@@ -228,13 +228,16 @@ const ensureAuthenticated = (req, res, next) => {
 
 // Middleware to check if user has admin access
 const ensureAdmin = (req, res, next) => {
+  console.log('[ensureAdmin] Checking:', req.method, req.path, 'isAdmin:', req.session?.isAdmin);
   if (req.session.isAdmin) {
     return next();
   } else {
     // For API requests, return JSON instead of redirect
     if (req.path.startsWith('/admin/api')) {
+      console.log('[ensureAdmin] Unauthorized API request, returning 401 JSON');
       return res.status(401).json({ error: 'Unauthorized. Please log in as admin.' });
     }
+    console.log('[ensureAdmin] Unauthorized, redirecting to login');
     res.redirect('/admin/login');
   }
 };
@@ -2175,6 +2178,12 @@ app.get('/admin/api/subscription-stats', ensureAdmin, async (req, res) => {
 
 // Admin API: Grant premium to user
 app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res) => {
+  console.log('========================================');
+  console.log('[Grant Premium] ENDPOINT HIT!');
+  console.log('[Grant Premium] Method:', req.method);
+  console.log('[Grant Premium] Path:', req.path);
+  console.log('[Grant Premium] Session isAdmin:', req.session?.isAdmin);
+  console.log('========================================');
   try {
     console.log('[Grant Premium] Request for user:', req.params.userId, 'Body:', req.body);
     const userId = parseInt(req.params.userId);
