@@ -926,6 +926,7 @@ app.get('/profile', ensureAuthenticated, async (req, res) => {
     res.render('profile', {
       user: {
         ...user,
+        subscriptionStatus: subscription ? 'premium' : 'free',
         progress,
         vocabulary: vocab,
         vocabCount,

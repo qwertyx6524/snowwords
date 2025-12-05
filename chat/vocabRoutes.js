@@ -64,7 +64,7 @@ router.post('/aiLookup', vocabLimiter, async (req, res) => {
     // 1) Check if word is in DB
     const checkResult = await db.query(`
       SELECT * FROM vocabulary
-      WHERE userId = $1 AND LOWER(word) = LOWER($2)
+      WHERE userid = $1 AND LOWER(word) = LOWER($2)
     `, [userId, word]);
     
     const existing = checkResult.rows[0];
@@ -95,7 +95,7 @@ router.post('/aiLookup', vocabLimiter, async (req, res) => {
 
       // Store definition in DB
       await db.query(`
-        INSERT INTO vocabulary (userId, word, definition)
+        INSERT INTO vocabulary (userid, word, definition)
         VALUES ($1, $2, $3)
       `, [userId, word, definition]);
 

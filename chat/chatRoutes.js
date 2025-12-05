@@ -23,7 +23,7 @@ router.post('/', chatLimiter, checkMessageLimit, async (req, res) => {
     
     // Insert user message into database
     await db.query(`
-      INSERT INTO messages (userId, role, content, timestamp)
+      INSERT INTO messages (userid, role, content, timestamp)
       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     `, [userId, 'user', userMessage]);
 
@@ -84,7 +84,7 @@ router.post('/', chatLimiter, checkMessageLimit, async (req, res) => {
     
     // Insert AI message into database
     await db.query(`
-      INSERT INTO messages (userId, role, content, timestamp)
+      INSERT INTO messages (userid, role, content, timestamp)
       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     `, [userId, 'assistant', aiReply]);
 
@@ -112,9 +112,9 @@ router.get('/usage', async (req, res) => {
     
     // Get current day's message count
     const result = await db.query(`
-      SELECT COUNT(*) as count 
-      FROM messages 
-      WHERE userId = $1 AND DATE(timestamp) = $2 AND role = 'user'
+      SELECT COUNT(*) as count
+      FROM messages
+      WHERE userid = $1 AND DATE(timestamp) = $2 AND role = 'user'
     `, [userId, today]);
     
     const messageCount = parseInt(result.rows[0].count);
