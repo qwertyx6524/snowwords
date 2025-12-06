@@ -13,7 +13,8 @@ async function sendToGemini(message, systemContext = null) {
             fullMessage = `${systemContext}\n\n${message}`;
         }
 
-        const googleModel = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash" });
+        // Try without the models/ prefix - use the stable version
+        const googleModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
         const result = await googleModel.generateContent(fullMessage);
 
         if (!result.response) {
