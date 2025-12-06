@@ -999,26 +999,42 @@ app.post('/delete-account', ensureAuthenticated, async (req, res) => {
 // Test endpoint to list available Gemini models
 app.get('/api/test-models', async (req, res) => {
   try {
-    const { listAvailableModels } = require('./chat/geminiClient');
-    const models = await listAvailableModels();
+    const axios = require('axios');
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const modelList = models.map(m => ({
-      name: m.name,
-      displayName: m.displayName,
-      description: m.description,
-      supportedMethods: m.supportedGenerationMethods
-    }));
+    if (!apiKey) {
+      return res.status(500).json({
+        error: 'GEMINI_API_KEY not configured'
+      });
+    }
+
+    // Make direct API call to list models
+    const response = await axios.get(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+    );
+
+    const models = response.data.models || [];
+    const modelList = models
+      .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
+      .map(m => ({
+        name: m.name,
+        displayName: m.displayName,
+        description: m.description,
+        supportedMethods: m.supportedGenerationMethods
+      }));
 
     res.json({
       success: true,
       count: modelList.length,
-      models: modelList
+      models: modelList,
+      note: 'These are the models available for generateContent with your API key'
     });
   } catch (error) {
     console.error('Error listing models:', error);
     res.status(500).json({
       error: 'Failed to list models',
-      message: error.message
+      message: error.message,
+      details: error.response?.data
     });
   }
 });

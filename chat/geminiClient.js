@@ -42,15 +42,4 @@ async function sendToGemini(message, systemContext = null) {
     }
 }
 
-// Function to list available models
-async function listAvailableModels() {
-    try {
-        const models = await genAI.listModels();
-        return models;
-    } catch (error) {
-        console.error('Error listing models:', error);
-        throw error;
-    }
-}
-
-module.exports = { sendToGemini, listAvailableModels };
+module.exports = { sendToGemini };
