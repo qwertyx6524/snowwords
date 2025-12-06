@@ -6,14 +6,15 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function sendToGemini(message, systemContext = null) {
     try {
-        // Configure model options
-        const modelOptions = { model: "gemini-1.5-flash" };
+        // Use gemini-pro which is more widely supported
+        // If systemContext is provided, prepend it to the message
+        let fullMessage = message;
         if (systemContext) {
-            modelOptions.systemInstruction = systemContext;
+            fullMessage = `${systemContext}\n\n${message}`;
         }
 
-        const googleModel = genAI.getGenerativeModel(modelOptions);
-        const result = await googleModel.generateContent(message);
+        const googleModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await googleModel.generateContent(fullMessage);
 
         if (!result.response) {
             throw new Error('No response from Gemini API');
