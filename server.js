@@ -996,6 +996,33 @@ app.post('/delete-account', ensureAuthenticated, async (req, res) => {
   }
 });
 
+// Test endpoint to list available Gemini models
+app.get('/api/test-models', async (req, res) => {
+  try {
+    const { listAvailableModels } = require('./chat/geminiClient');
+    const models = await listAvailableModels();
+
+    const modelList = models.map(m => ({
+      name: m.name,
+      displayName: m.displayName,
+      description: m.description,
+      supportedMethods: m.supportedGenerationMethods
+    }));
+
+    res.json({
+      success: true,
+      count: modelList.length,
+      models: modelList
+    });
+  } catch (error) {
+    console.error('Error listing models:', error);
+    res.status(500).json({
+      error: 'Failed to list models',
+      message: error.message
+    });
+  }
+});
+
 // Chat Routes
 app.use('/api/chat', ensureAuthenticated, chatRoutes);
 
