@@ -158,14 +158,7 @@ const initializeDatabase = async () => {
       )
     `);
 
-    // Clear existing subscription plans to avoid duplicates
-    try {
-      await db.query('DELETE FROM subscription_plans');
-    } catch (err) {
-      console.log('Error clearing subscription plans:', err.message);
-    }
-
-    // Insert subscription plans with correct pricing
+    // Insert subscription plans with correct pricing (using ON CONFLICT to update existing)
     await db.query(`
       INSERT INTO subscription_plans (id, name, description, price, billing_interval, features, is_active) VALUES
       (1, 'Free', 'Basic vocabulary learning with limited features', 0, 'monthly', '["Basic AI conversation (20 messages/day)", "2 tests per day", "Basic games", "Unlimited vocabulary storage"]', true),
