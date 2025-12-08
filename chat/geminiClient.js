@@ -12,9 +12,34 @@ async function sendToGemini(message, systemContext = null) {
             fullMessage = `${systemContext}\n\n${message}`;
         }
 
-        // Try gemini-1.5-pro-latest which should be stable
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
-        const result = await model.generateContent(fullMessage);
+        // Try a list of possible model names until one works
+        const modelNames = [
+            "gemini-pro",
+            "gemini-1.0-pro",
+            "gemini-1.5-pro",
+            "gemini-1.5-flash",
+            "gemini-2.0-flash-exp"
+        ];
+
+        let result;
+        let lastError;
+
+        for (const modelName of modelNames) {
+            try {
+                console.log(`Trying model: ${modelName}`);
+                const model = genAI.getGenerativeModel({ model: modelName });
+                result = await model.generateContent(fullMessage);
+                console.log(`SUCCESS with model: ${modelName}`);
+                break;
+            } catch (err) {
+                console.log(`Failed with ${modelName}: ${err.message}`);
+                lastError = err;
+            }
+        }
+
+        if (!result) {
+            throw lastError || new Error('No models available');
+        }
 
         if (!result.response) {
             throw new Error('No response from Gemini API');
