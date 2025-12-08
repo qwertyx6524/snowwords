@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function sendToGemini(message, systemContext = null) {
     try {
@@ -12,17 +12,15 @@ async function sendToGemini(message, systemContext = null) {
             fullMessage = `${systemContext}\n\n${message}`;
         }
 
-        // Use the new official API - gemini-2.5-flash is the latest stable model
-        const response = await genAI.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: fullMessage
-        });
+        // Try gemini-1.5-pro-latest which should be stable
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
+        const result = await model.generateContent(fullMessage);
 
-        if (!response || !response.text) {
+        if (!result.response) {
             throw new Error('No response from Gemini API');
         }
 
-        return response.text;
+        return result.response.text();
     } catch (error) {
         console.error('Gemini API Error Details:', {
             message: error.message,
