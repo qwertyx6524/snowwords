@@ -48,12 +48,13 @@
         width: 90%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: min(2rem, 2vh);
       }
       
       /* Divide the page into two vertical sections */
       .top-section {
         flex: 0 0 auto;
+        max-height: 70vh;
       }
       
       .section-sky {
@@ -65,23 +66,24 @@
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 4rem 2rem;
+        padding: min(4rem, 4vh) min(2rem, 2vw);
         position: relative;
         overflow: hidden;
       }
-      
+
       .section-sky h1 {
-        font-size: 2.8rem;
-        margin-bottom: 1.5rem;
+        font-size: min(2.8rem, 5vh);
+        margin-bottom: min(1.5rem, 2vh);
       }
       
       .login-card {
         background: white;
         border-radius: 20px;
-        padding: 3rem;
+        padding: min(3rem, 4vh) min(2.5rem, 3vw);
         box-shadow: var(--shadow-xl);
+        width: 90%;
         max-width: 500px;
-        margin: 2rem auto;
+        margin: min(2rem, 2vh) auto;
         position: relative;
         border: 1px solid var(--slate-200);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -98,14 +100,14 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-align: center;
-        margin-bottom: 2rem;
-        font-size: 2rem;
+        margin-bottom: min(2rem, 2vh);
+        font-size: min(2rem, 3.5vh);
         font-weight: 700;
       }
-      
+
       form label {
         display: block;
-        margin: 1.5rem 0 0.5rem;
+        margin: min(1.5rem, 1.5vh) 0 min(0.5rem, 0.5vh);
         color: var(--slate-700);
         font-weight: 600;
         font-size: 0.95rem;
@@ -113,11 +115,11 @@
 
       form input {
         width: 100%;
-        padding: 1rem;
+        padding: min(1rem, 1.2vh);
         border: 2px solid var(--slate-200);
         border-radius: 12px;
-        font-size: 1rem;
-        margin-bottom: 1rem;
+        font-size: min(1rem, 2vh);
+        margin-bottom: min(1rem, 1vh);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-sizing: border-box;
         background: var(--slate-50);
@@ -134,14 +136,14 @@
         background: var(--gradient-primary);
         color: white;
         width: 100%;
-        padding: 1rem 2rem;
+        padding: min(1rem, 1.5vh) min(2rem, 2vw);
         border: none;
         border-radius: 12px;
-        font-size: 1.1rem;
+        font-size: min(1.1rem, 2.2vh);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-top: 1.5rem;
+        margin-top: min(1.5rem, 1.5vh);
         box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
       }
 
@@ -153,16 +155,18 @@
       .badge-warm {
         background: #ffcccc;
         color: #cc0000;
-        padding: 1rem;
+        padding: min(1rem, 1vh);
         border-radius: 8px;
         width: 100%;
         text-align: center;
-        margin: 1rem 0;
+        margin: min(1rem, 1vh) 0;
+        box-sizing: border-box;
       }
-      
+
       .text-center {
         text-align: center;
-        margin: 2rem 0;
+        margin: min(2rem, 2vh) 0;
+        font-size: min(1rem, 2vh);
       }
       
       .text-center a {
@@ -179,14 +183,14 @@
         background: white;
         color: #4285f4;
         width: 100%;
-        padding: 1rem;
+        padding: min(1rem, 1.2vh);
         border: 2px solid var(--slate-200);
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: min(1rem, 2vh);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-top: 1rem;
+        margin-top: min(1rem, 1vh);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -201,16 +205,16 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(66, 133, 244, 0.15);
       }
-      
+
       .google-icon {
-        width: 18px;
-        height: 18px;
+        width: min(18px, 3vh);
+        height: min(18px, 3vh);
       }
       
       .divider {
         display: flex;
         align-items: center;
-        margin: 1.5rem 0;
+        margin: min(1.5rem, 1.5vh) 0;
         color: var(--slate-700);
         font-size: 0.9rem;
         font-weight: 500;
@@ -224,26 +228,51 @@
         margin: 0 0.5rem;
       }
       
-      /* For phones, use your original adjustments */
-      @media (max-width: 480px) {
-        html, body {
-          height: 100vh;
-          overflow: hidden;
-        }
-        .container {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          padding: 1rem;
-          height: 100vh;
-        }
+      /* For very small screens */
+      @media (max-width: 480px) or (max-height: 600px) {
         .login-card {
-          margin: 0 auto;
-          padding: 1rem;
+          padding: min(1rem, 3vh);
+          margin: min(0.5rem, 1vh) auto;
+          width: 95%;
         }
+
+        .container {
+          width: 95%;
+          padding: min(1rem, 1vh);
+        }
+
+        /* Further reduce spacing on very small screens */
+        form label {
+          margin: min(0.5rem, 0.5vh) 0 min(0.3rem, 0.3vh);
+        }
+
+        form input {
+          margin-bottom: min(0.5rem, 0.5vh);
+          padding: min(0.6rem, 0.8vh);
+        }
+
+        .btn, .btn-google {
+          padding: min(0.8rem, 1vh);
+        }
+
+        .text-center {
+          margin: min(1rem, 1vh) 0;
+        }
+
+        /* Ensure hero section is not too large */
+        .section-sky {
+          padding: min(2rem, 2vh) min(1rem, 1vw);
+        }
+      }
+
+      /* Ensure content fits on really small devices */
+      @media (max-height: 500px) {
         .section-sky {
           display: none;
+        }
+
+        .top-section {
+          max-height: 100vh;
         }
       }
     </style>

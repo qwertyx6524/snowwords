@@ -13,63 +13,120 @@
     <title>SnowWords Admin Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
         body {
             background-color: #f5f7fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .login-container {
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 100%;
+            padding: min(30px, 4vh);
+            width: 90%;
             max-width: 400px;
+            box-sizing: border-box;
         }
+
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: min(30px, 3vh);
         }
+
         .login-header h2 {
             font-weight: 700;
             color: #2c3e50;
+            font-size: min(1.75rem, 3.5vh);
+            margin-bottom: min(0.5rem, 1vh);
         }
+
+        .login-header p {
+            font-size: min(1rem, 2vh);
+            margin: 0;
+        }
+
         .login-form .form-control {
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
+            padding: min(12px, 1.5vh);
+            margin-bottom: min(20px, 2vh);
+            font-size: min(1rem, 2vh);
         }
+
+        .login-form .form-label {
+            font-size: min(1rem, 2vh);
+            margin-bottom: min(0.5rem, 0.5vh);
+        }
+
         .login-btn {
             background-color: #3498db;
             border: none;
             border-radius: 8px;
-            padding: 12px;
+            padding: min(12px, 1.5vh);
             width: 100%;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: min(10px, 1vh);
+            font-size: min(1rem, 2vh);
         }
+
         .login-btn:hover {
             background-color: #2980b9;
         }
+
+        .alert {
+            font-size: min(0.875rem, 1.75vh);
+            padding: min(0.75rem, 1vh);
+            margin-bottom: min(1rem, 1vh);
+        }
+
         .error-message {
             color: #e74c3c;
-            margin-top: 15px;
-            font-size: 14px;
+            margin-top: min(15px, 1.5vh);
+            font-size: min(14px, 1.75vh);
             text-align: center;
         }
+
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: min(20px, 2vh);
             color: #7f8c8d;
             text-decoration: none;
-            font-size: 14px;
+            font-size: min(14px, 1.75vh);
         }
+
         .back-link:hover {
             color: #2c3e50;
+        }
+
+        /* For very small screens */
+        @media (max-width: 480px) or (max-height: 500px) {
+            .login-container {
+                padding: min(20px, 3vh);
+                width: 95%;
+            }
+
+            .login-header {
+                margin-bottom: min(20px, 2vh);
+            }
+
+            .login-form .form-control {
+                padding: min(10px, 1.2vh);
+                margin-bottom: min(15px, 1.5vh);
+            }
+
+            .login-btn {
+                padding: min(10px, 1.2vh);
+            }
         }
     </style>
 </head>
