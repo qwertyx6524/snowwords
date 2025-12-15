@@ -927,7 +927,7 @@ app.get('/profile', ensureAuthenticated, async (req, res) => {
     res.render('profile', {
       user: {
         ...user,
-        subscriptionStatus: subscription ? 'premium' : 'free',
+        subscriptionstatus: subscription ? 'premium' : 'free',
         progress,
         vocabulary: vocab,
         vocabCount,
@@ -1561,10 +1561,10 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
             SELECT COUNT(*) as count FROM subscriptions
             WHERE userid = $1 AND status = 'active'
           `, [user.id]);
-          user.subscriptionStatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
+          user.subscriptionstatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
         } catch (subError) {
           console.error('[Admin API] Error checking subscription for user', user.id, subError.message);
-          user.subscriptionStatus = 'free'; // Default to free if error
+          user.subscriptionstatus = 'free'; // Default to free if error
         }
       }
       console.log('[Admin API] Returning users with status');
@@ -1658,7 +1658,7 @@ app.get('/admin/api/users/:id', ensureAdmin, async (req, res) => {
           englishLevel: null,
           learningGoals: null,
           avatarUrl: null,
-          subscriptionStatus: 'free'
+          subscriptionstatus: 'free'
         },
         vocab: [],
         messages: [],
@@ -2594,7 +2594,7 @@ async function handleSubscriptionCanceled(subscription) {
     `, [dbSubscription.id]);
     
     // Update user status to free
-    await db.query('UPDATE users SET subscriptionStatus = $1 WHERE id = $2', ['free', dbSubscription.userid]);
+    await db.query('UPDATE users SET subscriptionstatus = $1 WHERE id = $2', ['free', dbSubscription.userid]);
   } catch (error) {
     console.error('Error handling subscription cancellation:', error);
   }

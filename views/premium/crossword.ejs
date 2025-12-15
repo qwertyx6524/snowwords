@@ -387,7 +387,7 @@
       <p>Challenge yourself with words from your vocabulary!</p>
     </div>
 
-    <% if (user.subscriptionStatus !== 'premium') { %>
+    <% if (user.subscriptionstatus !== 'premium') { %>
       <div class="alert alert-info">
         ⏰ Free users get <strong>1 crossword per day</strong> •
         <a href="/subscription/plans" style="color:var(--frost-blue);text-decoration:none;font-weight:700">Upgrade to Premium</a> for unlimited puzzles!
@@ -412,7 +412,7 @@
     <div id="daily-limit-reached" class="error" style="display:none">
       <h3>⏰ Daily Limit Reached</h3>
       <p>You've already played today's crossword puzzle!</p>
-      <% if (user.subscriptionStatus !== 'premium') { %>
+      <% if (user.subscriptionstatus !== 'premium') { %>
         <p style="margin-top:1rem">Free users get <strong>1 crossword per day</strong>. Come back tomorrow for a new puzzle, or upgrade to Premium for unlimited crosswords!</p>
         <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap">
           <a href="/subscription/plans" class="btn btn-primary">⭐ Upgrade to Premium</a>

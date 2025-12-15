@@ -1376,8 +1376,8 @@
                     users.forEach(user => {
                         const option = document.createElement('option');
                         option.value = user.id;
-                        const status = user.subscriptionStatus === 'premium' ? '⭐' : '👤';
-                        const statusText = user.subscriptionStatus === 'premium' ? 'Premium' : 'Free';
+                        const status = user.subscriptionstatus === 'premium' ? '⭐' : '👤';
+                        const statusText = user.subscriptionstatus === 'premium' ? 'Premium' : 'Free';
                         option.textContent = `${status} ${user.username.padEnd(20)} | ${user.email.padEnd(30)} | ${statusText}`;
                         select.appendChild(option);
                     });

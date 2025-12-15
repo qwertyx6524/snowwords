@@ -94,7 +94,7 @@ router.post('/goals', async (req, res) => {
 router.post('/crossword/generate', async (req, res) => {
   try {
     const userId = req.user.id;
-    const isPremium = req.user.subscriptionStatus === 'premium';
+    const isPremium = req.user.subscriptionstatus === 'premium';
     console.log('Generating crossword for user:', userId, 'Premium:', isPremium);
 
     // Check daily limit for free users

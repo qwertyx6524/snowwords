@@ -367,7 +367,7 @@
 <script>
   // Mock data for demonstration - in real implementation, this would come from server
   const mockUser = {
-    subscriptionStatus: 'free' // Change to 'premium' to test premium state
+    subscriptionstatus: 'free' // Change to 'premium' to test premium state
   };
   
   const mockSubscription = null; // Set to { billing_interval: 'monthly' } or { billing_interval: 'yearly' } to test
@@ -376,7 +376,7 @@
   
   // Initialize page state based on user subscription
   function initializePage() {
-    if (mockUser.subscriptionStatus !== 'premium') {
+    if (mockUser.subscriptionstatus !== 'premium') {
       // User is on free plan
       document.getElementById('free-current').style.display = 'block';
     } else {
