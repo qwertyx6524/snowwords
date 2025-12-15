@@ -839,9 +839,10 @@ app.get('/auth/google', (req, res, next) => {
   }
   
   // Use the OAuth state parameter to preserve the return URL
-  passport.authenticate('google', { 
+  passport.authenticate('google', {
     scope: ['profile', 'email'],
-    state: returnPath // Pass returnPath as state parameter
+    state: returnPath, // Pass returnPath as state parameter
+    prompt: 'select_account' // Force account selection every time
   })(req, res, next);
 });
 
