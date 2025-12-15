@@ -1573,6 +1573,18 @@ app.get('/admin/api/users', ensureAdmin, async (req, res) => {
 
     // For each user, get additional stats (only when not searching and not simple mode)
     for (const user of users) {
+      // Check subscription status
+      try {
+        const subResult = await db.query(`
+          SELECT COUNT(*) as count FROM subscriptions
+          WHERE userid = $1 AND status = 'active'
+        `, [user.id]);
+        user.subscriptionstatus = subResult.rows[0].count > 0 ? 'premium' : 'free';
+      } catch (subError) {
+        console.error('[Admin API] Error checking subscription for user', user.id, subError.message);
+        user.subscriptionstatus = 'free'; // Default to free if error
+      }
+
       // Get vocabulary count
       const vocabCountResult = await db.query(`
         SELECT COUNT(*) as count FROM vocabulary WHERE userid = $1
@@ -2234,6 +2246,22 @@ app.post('/admin/api/users/:userId/grant-premium', ensureAdmin, async (req, res)
     }
     console.log('[Grant Premium] User found:', userResult.rows[0].username);
 
+    // Check if user already has active premium subscription
+    console.log('[Grant Premium] Checking for existing active subscriptions...');
+    const existingSubResult = await db.query(`
+      SELECT COUNT(*) as count FROM subscriptions
+      WHERE userid = $1 AND status = 'active'
+    `, [userId]);
+
+    if (existingSubResult.rows[0].count > 0) {
+      console.log('[Grant Premium] User already has active premium subscription');
+      return res.status(400).json({
+        error: 'User already has an active premium subscription',
+        message: 'This user already has premium access. You cannot grant premium to a user who already has it.'
+      });
+    }
+    console.log('[Grant Premium] No existing active subscriptions found');
+
     // Get plan or use first available plan
     let selectedPlanId = planId;
     if (!selectedPlanId) {
@@ -2651,10 +2679,10 @@ app.get('/api/admin/performance', ensureAdmin, async (req, res) => {
 });
 
 // Crossword Activity (Free: 1/day, Premium: unlimited)
-app.get('/premium/crossword',
+app.get('/crossword',
   ensureAuthenticated,
   (req, res) => {
-    res.render('premium/crossword', { user: req.user, csrfToken: req.csrfToken() });
+    res.render('crossword', { user: req.user, csrfToken: req.csrfToken() });
   }
 );
 
