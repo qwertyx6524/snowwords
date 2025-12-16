@@ -282,17 +282,27 @@ function tryPlaceWord(grid, word, placedWords, number) {
 
 function tryIntersection(grid, word, placed, wordIndex, placedIndex, direction, number) {
   const size = grid.length;
-  
-  // Calculate position for new word
+
+  // Only allow perpendicular intersections (across with down, or down with across)
+  if (direction === placed.direction) {
+    return null; // Can't intersect two words going in the same direction
+  }
+
+  // Calculate position for new word based on intersection point
   let newRow, newCol;
+
   if (direction === 'across') {
+    // New word going across, intersecting with a word going down
+    // The intersection point is at (placed.row + placedIndex, placed.col)
     newRow = placed.row + placedIndex;
     newCol = placed.col - wordIndex;
   } else {
+    // New word going down, intersecting with a word going across
+    // The intersection point is at (placed.row, placed.col + placedIndex)
     newRow = placed.row - wordIndex;
     newCol = placed.col + placedIndex;
   }
-  
+
   // Check if placement is valid
   if (isValidPlacement(grid, word, newRow, newCol, direction)) {
     placeWord(grid, { word }, newRow, newCol, direction, number);
@@ -304,13 +314,13 @@ function tryIntersection(grid, word, placed, wordIndex, placedIndex, direction, 
       number
     };
   }
-  
+
   return null;
 }
 
 function isValidPlacement(grid, word, row, col, direction) {
   const size = grid.length;
-  
+
   // Check bounds
   if (direction === 'across') {
     if (col < 0 || col + word.length > size || row < 0 || row >= size) {
@@ -321,8 +331,8 @@ function isValidPlacement(grid, word, row, col, direction) {
       return false;
     }
   }
-  
-  // Check for conflicts
+
+  // Check each cell position
   for (let i = 0; i < word.length; i++) {
     let cellRow = row, cellCol = col;
     if (direction === 'across') {
@@ -330,21 +340,48 @@ function isValidPlacement(grid, word, row, col, direction) {
     } else {
       cellRow = row + i;
     }
-    
+
     const currentCell = grid[cellRow][cellCol];
+
+    // If cell is occupied, it must match exactly (valid intersection)
     if (currentCell !== '' && currentCell !== word[i]) {
       return false;
     }
-    
-    // Check adjacent cells (no words should be adjacent except at intersection)
-    const adjacent = getAdjacentCells(grid, cellRow, cellCol);
-    for (const adj of adjacent) {
-      if (adj !== '' && adj !== '#' && !word.includes(adj)) {
+  }
+
+  // Check cells immediately before and after the word to ensure proper separation
+  if (direction === 'across') {
+    // Check cell before the word
+    if (col > 0) {
+      const before = grid[row][col - 1];
+      if (before !== '' && before !== '#') {
+        return false;
+      }
+    }
+    // Check cell after the word
+    if (col + word.length < size) {
+      const after = grid[row][col + word.length];
+      if (after !== '' && after !== '#') {
+        return false;
+      }
+    }
+  } else {
+    // Check cell before the word
+    if (row > 0) {
+      const before = grid[row - 1][col];
+      if (before !== '' && before !== '#') {
+        return false;
+      }
+    }
+    // Check cell after the word
+    if (row + word.length < size) {
+      const after = grid[row + word.length][col];
+      if (after !== '' && after !== '#') {
         return false;
       }
     }
   }
-  
+
   return true;
 }
 
