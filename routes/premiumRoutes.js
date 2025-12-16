@@ -193,11 +193,13 @@ function generateCrossword(words) {
     });
     clueNumber++;
     
-    // Try to place remaining words
+    // Try to place remaining words - try multiple times with different strategies
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
+      console.log(`Attempting to place word ${i}: "${word.word}"`);
+
       const placed = tryPlaceWord(grid, word, placedWords, clueNumber);
-      
+
       if (placed) {
         placedWords.push(placed);
         if (placed.direction === 'across') {
@@ -214,6 +216,9 @@ function generateCrossword(words) {
           });
         }
         clueNumber++;
+        console.log(`✓ Successfully placed "${word.word}" ${placed.direction} at (${placed.row}, ${placed.col})`);
+      } else {
+        console.log(`✗ Could not place "${word.word}"`);
       }
     }
     
@@ -259,24 +264,30 @@ function placeWord(grid, word, row, col, direction, number) {
 
 function tryPlaceWord(grid, word, placedWords, number) {
   const wordUpper = word.word.toUpperCase();
-  
+  let attemptCount = 0;
+
   for (const placed of placedWords) {
     // Try to intersect with each placed word
     for (let i = 0; i < wordUpper.length; i++) {
       for (let j = 0; j < placed.word.length; j++) {
-        if (wordUpper[i] === placed.word[j]) {
-          // Try placing across
-          const acrossResult = tryIntersection(grid, wordUpper, placed, i, j, 'across', number);
-          if (acrossResult) return acrossResult;
-          
-          // Try placing down
-          const downResult = tryIntersection(grid, wordUpper, placed, i, j, 'down', number);
-          if (downResult) return downResult;
+        if (wordUpper[i] === placed.word[j].toUpperCase()) {
+          attemptCount++;
+
+          // Determine which direction to try based on placed word's direction
+          // If placed word is across, try placing new word down and vice versa
+          const newDirection = placed.direction === 'across' ? 'down' : 'across';
+
+          const result = tryIntersection(grid, wordUpper, placed, i, j, newDirection, number);
+          if (result) {
+            console.log(`  Found intersection: "${wordUpper[i]}" matches "${placed.word[j]}" in "${placed.word}"`);
+            return result;
+          }
         }
       }
     }
   }
-  
+
+  console.log(`  Tried ${attemptCount} potential intersections, none valid`);
   return null;
 }
 
@@ -313,6 +324,8 @@ function tryIntersection(grid, word, placed, wordIndex, placedIndex, direction, 
       direction,
       number
     };
+  } else {
+    console.log(`    Placement invalid at (${newRow}, ${newCol}) ${direction}`);
   }
 
   return null;
@@ -402,34 +415,51 @@ function getAdjacentCells(grid, row, col) {
 
 function addNumbers(grid, placedWords) {
   const numberedGrid = grid.map(row => row.map(cell => ({ value: cell })));
-  const usedNumbers = new Set();
-  
+  const cellNumbers = new Map(); // Track which numbers start at which cells
+
   for (const placed of placedWords) {
     const number = placed.number;
     const row = placed.row;
     const col = placed.col;
-    
+    const wordLength = placed.word.length;
+
     // Ensure row and col are valid
-    if (row === undefined || col === undefined || row < 0 || col < 0 || 
+    if (row === undefined || col === undefined || row < 0 || col < 0 ||
         row >= numberedGrid.length || col >= numberedGrid[0].length) {
       continue;
     }
-    
-    if (!usedNumbers.has(number)) {
+
+    // Set number on the first cell only
+    const cellKey = `${row},${col}`;
+    if (!cellNumbers.has(cellKey)) {
       numberedGrid[row][col].number = number;
-      numberedGrid[row][col].across = placed.direction === 'across' ? number : null;
-      numberedGrid[row][col].down = placed.direction === 'down' ? number : null;
-      usedNumbers.add(number);
-    } else {
-      // Add direction info to existing number
+      cellNumbers.set(cellKey, number);
+    }
+
+    // Set direction attribute on ALL cells of the word
+    for (let i = 0; i < wordLength; i++) {
+      let cellRow = row;
+      let cellCol = col;
+
       if (placed.direction === 'across') {
-        numberedGrid[row][col].across = number;
+        cellCol = col + i;
       } else {
-        numberedGrid[row][col].down = number;
+        cellRow = row + i;
+      }
+
+      // Validate cell position
+      if (cellRow >= 0 && cellRow < numberedGrid.length &&
+          cellCol >= 0 && cellCol < numberedGrid[0].length) {
+
+        if (placed.direction === 'across') {
+          numberedGrid[cellRow][cellCol].across = number;
+        } else {
+          numberedGrid[cellRow][cellCol].down = number;
+        }
       }
     }
   }
-  
+
   return numberedGrid;
 }
 
