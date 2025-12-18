@@ -513,17 +513,30 @@
 
     async function initCrossword() {
       try {
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) {
+          throw new Error('CSRF token not found. Please refresh the page.');
+        }
+        const csrf = csrfMeta.getAttribute('content');
+
+        console.log('Initiating crossword generation...');
+        console.log('CSRF token present:', !!csrf);
+
         const response = await fetch('/api/premium/crossword/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrf
-          }
+          },
+          credentials: 'same-origin'
         });
+
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
+          console.error('API error:', data);
 
           // Not enough words error
           if (data.error && data.error.includes('least 5 words')) {
