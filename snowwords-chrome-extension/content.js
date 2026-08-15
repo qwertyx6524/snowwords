@@ -1,6 +1,6 @@
 // content.js – fixed: double right-click using word-under-cursor detection + original-style notifications + large popup + keybind repeat fix
 
-const SNOWWORDS_DOMAIN = 'https://www.snowwords.com';
+const SNOWWORDS_DOMAIN = 'https://www.https://p01--snowwords--hxfqcgjhcc88.code.run/';
 
 /**
  * Inject notification + popup CSS
